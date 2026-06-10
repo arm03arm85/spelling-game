@@ -333,6 +333,17 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
       <input id="build-input" class="build-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
     </div>
 
+    <!-- Trace It -->
+    <div id="phase-trace" class="lesson-card" style="display:none;">
+      <div style="font-size:15px;color:#888;margin-bottom:4px;">Trace the word with your finger!</div>
+      <div style="font-size:13px;color:#bbb;margin-bottom:10px;">Follow the gray letters below ↓</div>
+      <canvas id="trace-canvas" style="width:100%;border-radius:14px;border:3px solid #E8EAF6;background:#FAFAFE;touch-action:none;display:block;"></canvas>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="big-btn btn-coral" style="flex:1;padding:16px;" onclick="clearTrace()">↺ Try again</button>
+        <button class="big-btn btn-purple" style="flex:2;padding:16px;" onclick="goPhase(3)">Done! →</button>
+      </div>
+    </div>
+
     <!-- Phase 4: STORY -->
     <div id="phase-story" class="lesson-card" style="display:none;">
       <div style="font-size:15px;color:#888;margin-bottom:10px;">Read the story — tap every <span id="story-target-chip" style="font-weight:900;color:var(--purple);"></span> you see!</div>
@@ -774,7 +785,7 @@ const PHASE_LABELS=['PHASE 1 OF 5','PHASE 2 OF 5','PHASE 3 OF 5','PHASE 4 OF 5',
 function renderPhase(ph) {
   curPhase=ph;
   // Hide all phases
-  ['phase-intro','phase-sounds','phase-build','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
   // Update header
@@ -920,7 +931,7 @@ function buildComplete() {
       document.getElementById('build-input').value='';
       document.getElementById('build-input').focus();
     } else {
-      goPhase(3);
+      showTrace();
     }
   },900);
 }
@@ -1322,6 +1333,91 @@ function populateWordMap(){
   chips(kWords,'wm-k');
   chips(g1Words,'wm-1g');
 }
+
+// ── TRACE IT ──────────────────────────────────────────
+let tracingActive=false,traceLastX=0,traceLastY=0,traceEventsSetup=false;
+
+function showTrace(){
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-story','phase-spell','phase-done'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('phase-label').textContent='PHASE 3 OF 5';
+  document.getElementById('phase-title').textContent='Trace It!';
+  const dots=document.getElementById('phase-dots');
+  dots.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=document.createElement('div');
+    d.className='pdot'+(i===2?' active':i<2?' done':'');
+    dots.appendChild(d);
+  }
+  document.getElementById('phase-trace').style.display='block';
+  setTimeout(()=>setupTraceCanvas(),60);
+}
+
+function setupTraceCanvas(){
+  const canvas=document.getElementById('trace-canvas');
+  const dpr=window.devicePixelRatio||1;
+  const cssW=canvas.offsetWidth||300;
+  const cssH=200;
+  canvas.style.height=cssH+'px';
+  canvas.width=cssW*dpr;
+  canvas.height=cssH*dpr;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  drawTraceGuide(ctx,cssW,cssH);
+  if(!traceEventsSetup){
+    traceEventsSetup=true;
+    canvas.addEventListener('touchstart',e=>{
+      e.preventDefault();
+      const r=canvas.getBoundingClientRect(),t=e.touches[0];
+      traceLastX=t.clientX-r.left; traceLastY=t.clientY-r.top; tracingActive=true;
+    },{passive:false});
+    canvas.addEventListener('touchmove',e=>{
+      e.preventDefault();
+      if(!tracingActive)return;
+      const r=canvas.getBoundingClientRect(),t=e.touches[0];
+      const x=t.clientX-r.left,y=t.clientY-r.top;
+      traceStroke(x,y); traceLastX=x; traceLastY=y;
+    },{passive:false});
+    canvas.addEventListener('touchend',()=>{tracingActive=false;});
+    canvas.addEventListener('mousedown',e=>{
+      const r=canvas.getBoundingClientRect();
+      traceLastX=e.clientX-r.left; traceLastY=e.clientY-r.top; tracingActive=true;
+    });
+    canvas.addEventListener('mousemove',e=>{
+      if(!tracingActive)return;
+      const r=canvas.getBoundingClientRect();
+      const x=e.clientX-r.left,y=e.clientY-r.top;
+      traceStroke(x,y); traceLastX=x; traceLastY=y;
+    });
+    canvas.addEventListener('mouseup',()=>{tracingActive=false;});
+    canvas.addEventListener('mouseleave',()=>{tracingActive=false;});
+  }
+}
+
+function drawTraceGuide(ctx,w,h){
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#E8EAF6'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(12,h*.78); ctx.lineTo(w-12,h*.78); ctx.stroke();
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(12,h*.48); ctx.lineTo(w-12,h*.48); ctx.stroke();
+  ctx.setLineDash([]);
+  const fs=Math.min(90,Math.floor((w-24)/Math.max(curWord.length,1)*1.05));
+  ctx.font=`900 ${fs}px Nunito,sans-serif`;
+  ctx.fillStyle='rgba(190,185,230,0.55)';
+  ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText(curWord,w/2,h*.78);
+}
+
+function traceStroke(x,y){
+  const canvas=document.getElementById('trace-canvas');
+  const ctx=canvas.getContext('2d');
+  ctx.beginPath(); ctx.moveTo(traceLastX,traceLastY); ctx.lineTo(x,y);
+  ctx.strokeStyle='#7C4DFF'; ctx.lineWidth=7; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.stroke();
+}
+
+function clearTrace(){ setupTraceCanvas(); }
 
 // Keep build input focused
 document.getElementById('build-input').addEventListener('blur',()=>{

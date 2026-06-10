@@ -222,6 +222,43 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
 .present-item-big{font-size:100px;animation:popIn .4s ease;line-height:1;}
 .present-reveal-msg{color:#fff;font-size:26px;font-weight:900;margin:14px 0 24px;}
 
+/* SCRAMBLE */
+.scramble-slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0;}
+.scramble-slot{
+  width:50px;height:60px;border-radius:12px;border:3px dashed #E0E0E0;
+  font-size:28px;font-weight:900;display:flex;align-items:center;justify-content:center;color:var(--navy);
+}
+.scramble-slot.sc-filled{border-style:solid;border-color:var(--teal);background:#F0FFFE;}
+.scramble-tiles{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0;}
+.scramble-tile{
+  width:54px;height:54px;border-radius:14px;font-size:26px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;color:var(--navy);
+  cursor:pointer;border:none;font-family:'Nunito',sans-serif;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);transition:transform .1s,opacity .2s;
+}
+.scramble-tile:active{transform:scale(.88);}
+.scramble-tile.sc-used{opacity:.25;pointer-events:none;}
+.scramble-tile.sc-wrong{animation:shake .3s ease;}
+
+/* MISSING LETTER */
+.ml-word-row{
+  font-size:40px;font-weight:900;color:var(--navy);
+  display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:14px 0;
+}
+.ml-blank{
+  color:var(--purple);border-bottom:4px solid var(--purple);
+  min-width:30px;display:inline-block;text-align:center;transition:all .3s;
+}
+.ml-choices{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+.ml-btn{
+  width:66px;height:66px;border-radius:18px;font-size:28px;font-weight:900;
+  border:none;color:var(--navy);font-family:'Nunito',sans-serif;
+  cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:transform .1s;
+}
+.ml-btn:active{transform:scale(.9);}
+.ml-btn:disabled{opacity:.35;cursor:default;}
+.ml-btn.ml-wrong{animation:shake .3s ease;}
+
 /* CELEBRATE */
 #screen-celebrate{
   min-height:100vh;flex-direction:column;align-items:center;justify-content:center;
@@ -340,8 +377,22 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
       <canvas id="trace-canvas" style="width:100%;border-radius:14px;border:3px solid #E8EAF6;background:#FAFAFE;touch-action:none;display:block;"></canvas>
       <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="big-btn btn-coral" style="flex:1;padding:16px;" onclick="clearTrace()">↺ Try again</button>
-        <button class="big-btn btn-purple" style="flex:2;padding:16px;" onclick="goPhase(3)">Done! →</button>
+        <button class="big-btn btn-purple" style="flex:2;padding:16px;" onclick="showScramble()">Done! →</button>
       </div>
+    </div>
+
+    <!-- Scramble It -->
+    <div id="phase-scramble" class="lesson-card" style="display:none;">
+      <div style="font-size:15px;color:#888;margin-bottom:4px;">Put the letters in the right order!</div>
+      <div class="scramble-slots" id="scramble-slots"></div>
+      <div class="scramble-tiles" id="scramble-tiles"></div>
+    </div>
+
+    <!-- Missing Letter -->
+    <div id="phase-missing" class="lesson-card" style="display:none;">
+      <div style="font-size:15px;color:#888;margin-bottom:4px;">Which letter is missing?</div>
+      <div class="ml-word-row" id="ml-word-row"></div>
+      <div class="ml-choices" id="ml-choices"></div>
     </div>
 
     <!-- Phase 4: STORY -->
@@ -780,27 +831,21 @@ function beginWord(word) {
 }
 
 const PHASE_NAMES=['Meet the Word','Sound It Out','Build It!','Story Time','Spell It!',''];
-const PHASE_LABELS=['PHASE 1 OF 5','PHASE 2 OF 5','PHASE 3 OF 5','PHASE 4 OF 5','PHASE 5 OF 5',''];
+const PHASE_LABELS=['PHASE 1 OF 8','PHASE 2 OF 8','PHASE 3 OF 8','PHASE 7 OF 8','PHASE 8 OF 8',''];
+const DOT_POS=[0,1,2,6,7,-1];
 
 function renderPhase(ph) {
   curPhase=ph;
   // Hide all phases
-  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
   // Update header
   document.getElementById('phase-label').textContent=PHASE_LABELS[ph]||'';
   document.getElementById('phase-title').textContent=PHASE_NAMES[ph]||'';
   // Dots
-  const dots=document.getElementById('phase-dots');
-  dots.innerHTML='';
-  if(ph<5){
-    for(let i=0;i<5;i++){
-      const d=document.createElement('div');
-      d.className='pdot'+(i===ph?' active':i<ph?' done':'');
-      dots.appendChild(d);
-    }
-  }
+  const dp=DOT_POS[ph];
+  if(dp>=0) renderPhaseDots(dp,8);
 
   const wd=WORDS[curWord]||{emoji:'✨',hint:'You can do it!',sounds:[...curWord],story:`The word {${curWord}} is in this sentence. Say {${curWord}}! Great job saying {${curWord}}!`};
 
@@ -1334,22 +1379,150 @@ function populateWordMap(){
   chips(g1Words,'wm-1g');
 }
 
+// ── PHASE DOTS HELPER ─────────────────────────────────
+function renderPhaseDots(active,total){
+  const dots=document.getElementById('phase-dots');
+  dots.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='pdot'+(i===active?' active':i<active?' done':'');
+    dots.appendChild(d);
+  }
+}
+
+// ── SCRAMBLE IT ───────────────────────────────────────
+let scrambleNextIdx=0;
+
+function showScramble(){
+  if(curWord.length<=1){showMissingLetter();return;}
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('phase-label').textContent='PHASE 5 OF 8';
+  document.getElementById('phase-title').textContent='Scramble It!';
+  renderPhaseDots(4,8);
+  document.getElementById('phase-scramble').style.display='block';
+  renderScramble();
+}
+
+function renderScramble(){
+  scrambleNextIdx=0;
+  let letters=curWord.split('').map((l,i)=>({l,i}));
+  let attempts=0;
+  do{letters=letters.sort(()=>Math.random()-.5);attempts++;}
+  while(attempts<20&&letters.map(x=>x.l).join('')===curWord);
+
+  const slots=document.getElementById('scramble-slots');
+  slots.innerHTML='';
+  curWord.split('').forEach((_,i)=>{
+    const s=document.createElement('div');
+    s.className='scramble-slot'; s.id=`sc-slot-${i}`;
+    slots.appendChild(s);
+  });
+
+  const tiles=document.getElementById('scramble-tiles');
+  tiles.innerHTML='';
+  const cols=['#FFD93D','#4ECDC4','#FF6B6B','#7C4DFF','#6BCB77','#FF8A65','#42A5F5','#AB47BC'];
+  letters.forEach((item,i)=>{
+    const t=document.createElement('div');
+    t.className='scramble-tile'; t.id=`sc-tile-${i}`;
+    t.textContent=item.l; t.style.background=cols[i%cols.length];
+    t.onclick=()=>tapScrambleTile(t,item.l);
+    tiles.appendChild(t);
+  });
+}
+
+function tapScrambleTile(tile,letter){
+  if(tile.classList.contains('sc-used'))return;
+  const expected=curWord[scrambleNextIdx];
+  if(letter.toLowerCase()===expected.toLowerCase()){
+    tile.classList.add('sc-used');
+    const slot=document.getElementById(`sc-slot-${scrambleNextIdx}`);
+    slot.textContent=letter; slot.classList.add('sc-filled');
+    speak(letter);
+    scrambleNextIdx++;
+    if(scrambleNextIdx===curWord.length){
+      spawnConfetti(15); speak('Amazing!');
+      setTimeout(()=>showMissingLetter(),900);
+    }
+  } else {
+    tile.classList.add('sc-wrong');
+    speak('Try again!');
+    setTimeout(()=>tile.classList.remove('sc-wrong'),400);
+  }
+}
+
+// ── MISSING LETTER ────────────────────────────────────
+function showMissingLetter(){
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('phase-label').textContent='PHASE 6 OF 8';
+  document.getElementById('phase-title').textContent='Missing Letter!';
+  renderPhaseDots(5,8);
+  document.getElementById('phase-missing').style.display='block';
+  renderMissingLetter();
+}
+
+function renderMissingLetter(){
+  const word=curWord;
+  const blankIdx=word.length===1?0:Math.floor(Math.random()*(word.length-1))+0;
+  const correct=word[blankIdx].toLowerCase();
+
+  const row=document.getElementById('ml-word-row');
+  row.innerHTML='';
+  word.split('').forEach((l,i)=>{
+    const span=document.createElement('span');
+    if(i===blankIdx){span.className='ml-blank';span.id='ml-blank-span';span.textContent='_';}
+    else{span.style.cssText='font-size:40px;font-weight:900;color:var(--navy);';span.textContent=l;}
+    row.appendChild(span);
+  });
+
+  const alpha='abcdefghijklmnopqrstuvwxyz';
+  const opts=[correct];
+  while(opts.length<4){
+    const r=alpha[Math.floor(Math.random()*alpha.length)];
+    if(!opts.includes(r))opts.push(r);
+  }
+  opts.sort(()=>Math.random()-.5);
+
+  const choices=document.getElementById('ml-choices');
+  choices.innerHTML='';
+  const cols=['#FFD93D','#4ECDC4','#FF6B6B','#7C4DFF'];
+  opts.forEach((letter,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ml-btn'; btn.textContent=letter;
+    btn.style.background=cols[i%cols.length];
+    btn.onclick=()=>tapMissingChoice(btn,letter,correct);
+    choices.appendChild(btn);
+  });
+}
+
+function tapMissingChoice(btn,letter,correct){
+  if(letter===correct){
+    const blank=document.getElementById('ml-blank-span');
+    if(blank){blank.textContent=letter;blank.style.color='var(--green)';blank.style.borderColor='var(--green)';}
+    document.querySelectorAll('.ml-btn').forEach(b=>b.disabled=true);
+    spawnConfetti(12); speak('Yes!');
+    setTimeout(()=>goPhase(3),900);
+  } else {
+    btn.classList.add('ml-wrong');
+    btn.disabled=true;
+    speak('Try again!');
+    setTimeout(()=>btn.classList.remove('ml-wrong'),400);
+  }
+}
+
 // ── TRACE IT ──────────────────────────────────────────
 let tracingActive=false,traceLastX=0,traceLastY=0,traceEventsSetup=false;
 
 function showTrace(){
-  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
-  document.getElementById('phase-label').textContent='PHASE 3 OF 5';
+  document.getElementById('phase-label').textContent='PHASE 4 OF 8';
   document.getElementById('phase-title').textContent='Trace It!';
-  const dots=document.getElementById('phase-dots');
-  dots.innerHTML='';
-  for(let i=0;i<5;i++){
-    const d=document.createElement('div');
-    d.className='pdot'+(i===2?' active':i<2?' done':'');
-    dots.appendChild(d);
-  }
+  renderPhaseDots(3,8);
   document.getElementById('phase-trace').style.display='block';
   setTimeout(()=>setupTraceCanvas(),60);
 }

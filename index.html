@@ -195,6 +195,33 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
 .wc-dot-known{background:var(--green);}
 .wc-dot-active{background:var(--coral);}
 
+/* WORD MAP */
+.word-map{background:#fff;border-radius:20px;padding:16px 18px;box-shadow:var(--shadow);margin-top:14px;}
+.wm-toggle{display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:none;background:none;width:100%;padding:0;font-family:'Nunito',sans-serif;}
+.wm-toggle-label{font-size:13px;font-weight:800;color:#9E9E9E;text-transform:uppercase;letter-spacing:.07em;}
+.wm-section{margin-top:12px;}
+.wm-section-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#bbb;margin-bottom:6px;}
+.wm-grid{display:flex;flex-wrap:wrap;gap:5px;}
+.wm-chip{font-size:12px;font-weight:800;padding:4px 9px;border-radius:8px;display:inline-block;}
+.wm-chip-locked{background:#F3F4F6;color:#ccc;}
+.wm-chip-active{background:#FFE5E5;color:var(--coral);}
+.wm-chip-known{background:#E8F8EA;color:#3d9142;}
+.wm-legend{display:flex;gap:12px;margin-top:10px;font-size:11px;font-weight:700;}
+
+/* PRESENT OVERLAY */
+#present-overlay{
+  position:fixed;inset:0;background:rgba(44,62,80,.88);z-index:200;
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  text-align:center;padding:32px;
+}
+#present-overlay.show{display:flex;}
+.present-gift{font-size:110px;cursor:pointer;display:block;animation:bounce .6s infinite alternate;line-height:1;}
+.present-tap-txt{color:#fff;font-size:20px;font-weight:800;margin-top:12px;opacity:.9;}
+#present-reveal{display:none;flex-direction:column;align-items:center;}
+#present-reveal.show{display:flex;}
+.present-item-big{font-size:100px;animation:popIn .4s ease;line-height:1;}
+.present-reveal-msg{color:#fff;font-size:26px;font-weight:900;margin:14px 0 24px;}
+
 /* CELEBRATE */
 #screen-celebrate{
   min-height:100vh;flex-direction:column;align-items:center;justify-content:center;
@@ -243,6 +270,27 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
       <div class="prog-label">Summer Progress</div>
       <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill"></div></div>
       <div class="prog-text" id="prog-text"></div>
+    </div>
+    <div class="word-map">
+      <button class="wm-toggle" onclick="toggleWordMap()">
+        <span class="wm-toggle-label">📊 Word Map — tap to see all words</span>
+        <span id="wm-arrow">▼</span>
+      </button>
+      <div id="wm-content" style="display:none;">
+        <div class="wm-section">
+          <div class="wm-section-label">Kindergarten words</div>
+          <div class="wm-grid" id="wm-k"></div>
+        </div>
+        <div class="wm-section">
+          <div class="wm-section-label">1st Grade words</div>
+          <div class="wm-grid" id="wm-1g"></div>
+        </div>
+        <div class="wm-legend">
+          <span style="color:#3d9142;">● Know it!</span>
+          <span style="color:var(--coral);">● Learning</span>
+          <span style="color:#ccc;">● Not yet</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -684,6 +732,7 @@ function showHome() {
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-text').textContent=`${done} of ${total} words practiced · ${pct}% complete`;
 
+  populateWordMap();
   showScreen('screen-home');
 }
 
@@ -978,7 +1027,8 @@ function checkSpell() {
     }
     spawnConfetti(20);
     speak('Amazing!');
-    setTimeout(()=>goPhase(5),1200);
+    if(!reviewMode){setTimeout(()=>showPresent(),1000);}
+    else{setTimeout(()=>goPhase(5),1200);}
   } else {
     // WRONG
     spellAttempts++;
@@ -1196,6 +1246,83 @@ function spawnConfetti(n=15) {
   }
 }
 
+// ── PRESENT ───────────────────────────────────────────
+const PRESENTS=[
+  {item:'🏀',msg:'A basketball!'},
+  {item:'🎢',msg:'Rollercoaster ride!'},
+  {item:'🌊',msg:'Water slide!'},
+  {item:'🧁',msg:'A cupcake!'},
+  {item:'🎡',msg:'Ferris wheel!'},
+  {item:'🍦',msg:'Ice cream!'},
+  {item:'🦄',msg:'A unicorn!'},
+  {item:'🏖️',msg:'Beach day!'},
+  {item:'🎠',msg:'Merry-go-round!'},
+  {item:'🌈',msg:'A rainbow!'},
+  {item:'🍕',msg:'Pizza party!'},
+  {item:'🎪',msg:'The circus!'},
+  {item:'🐬',msg:'Swim with dolphins!'},
+  {item:'🎭',msg:'A magic show!'},
+  {item:'🍩',msg:'A giant donut!'},
+  {item:'🎈',msg:'A balloon ride!'},
+];
+
+function showPresent(){
+  const p=PRESENTS[Math.floor(Math.random()*PRESENTS.length)];
+  document.getElementById('present-gift').style.display='block';
+  document.getElementById('present-tap-txt').style.display='block';
+  document.getElementById('present-item').textContent=p.item;
+  document.getElementById('present-msg').textContent=p.msg;
+  document.getElementById('present-reveal').classList.remove('show');
+  document.getElementById('present-overlay').classList.add('show');
+  spawnConfetti(20);
+}
+
+function openPresent(){
+  speak('Wow!');
+  document.getElementById('present-gift').style.display='none';
+  document.getElementById('present-tap-txt').style.display='none';
+  document.getElementById('present-reveal').classList.add('show');
+  spawnConfetti(50);
+}
+
+function closePresent(){
+  document.getElementById('present-overlay').classList.remove('show');
+  goPhase(5);
+}
+
+// ── WORD MAP ──────────────────────────────────────────
+function toggleWordMap(){
+  const c=document.getElementById('wm-content');
+  const a=document.getElementById('wm-arrow');
+  const hidden=c.style.display==='none';
+  c.style.display=hidden?'block':'none';
+  a.textContent=hidden?'▲':'▼';
+}
+
+function populateWordMap(){
+  const sr=getSR();
+  const unlocked=new Set(getAllUnlocked().map(w=>w.toLowerCase()));
+  const kWords=SCHEDULE.slice(0,25).flat();
+  const g1Words=SCHEDULE.slice(25).flat();
+  function chips(words,id){
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.innerHTML='';
+    words.forEach(word=>{
+      const k=word.toLowerCase();
+      const s=sr[k];
+      const chip=document.createElement('span');
+      if(!unlocked.has(k)){chip.className='wm-chip wm-chip-locked';}
+      else if(s&&s.pile==='known'){chip.className='wm-chip wm-chip-known';}
+      else{chip.className='wm-chip wm-chip-active';}
+      chip.textContent=word;
+      el.appendChild(chip);
+    });
+  }
+  chips(kWords,'wm-k');
+  chips(g1Words,'wm-1g');
+}
+
 // Keep build input focused
 document.getElementById('build-input').addEventListener('blur',()=>{
   if(curPhase===2) setTimeout(()=>document.getElementById('build-input').focus(),100);
@@ -1206,6 +1333,19 @@ document.getElementById('spell-input').addEventListener('blur',()=>{
 
 // ── START ──────────────────────────────────────────────
 init();
+;
 </script>
+
+<!-- ═══ PRESENT OVERLAY ═══ -->
+<div id="present-overlay">
+  <span class="present-gift" id="present-gift" onclick="openPresent()">🎁</span>
+  <div id="present-tap-txt" class="present-tap-txt">Tap to open your present!</div>
+  <div id="present-reveal">
+    <span class="present-item-big" id="present-item"></span>
+    <div class="present-reveal-msg" id="present-msg"></div>
+    <button class="big-btn btn-gold" style="max-width:260px;" onclick="closePresent()">Keep going! →</button>
+  </div>
+</div>
+
 </body>
 </html>

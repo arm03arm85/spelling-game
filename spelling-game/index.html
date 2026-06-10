@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⭐ Spelling Stars</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral:#FF6B6B; --teal:#4ECDC4; --gold:#FFD93D; --purple:#7C4DFF;
+  --green:#6BCB77; --navy:#2C3E50; --bg:#F0F4FF; --white:#fff;
+  --shadow:0 8px 32px rgba(0,0,0,0.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);min-height:100vh;overflow-x:hidden;}
+button{cursor:pointer;font-family:'Nunito',sans-serif;}
+
+/* ── SCREENS ── */
+.screen{display:none;}
+.screen.active{display:block;}
+#screen-setup.active,#screen-celebrate.active{display:flex;}
+
+/* ── SETUP ── */
+#screen-setup{
+  min-height:100vh;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 24px;text-align:center;
+  background:linear-gradient(135deg,var(--purple) 0%,#4a148c 100%);
+}
+.setup-icon{font-size:90px;margin-bottom:16px;}
+.setup-title{font-size:34px;font-weight:900;color:#fff;margin-bottom:8px;}
+.setup-sub{font-size:18px;color:rgba(255,255,255,.75);margin-bottom:36px;}
+.setup-input{
+  font-size:28px;font-family:'Nunito',sans-serif;font-weight:700;text-align:center;
+  padding:18px 24px;border-radius:20px;border:4px solid var(--gold);
+  outline:none;width:100%;max-width:280px;margin-bottom:24px;
+}
+
+/* ── HOME ── */
+.home-hero{
+  background:linear-gradient(135deg,var(--purple) 0%,#5e35b1 100%);
+  padding:28px 24px 44px;text-align:center;color:#fff;position:relative;
+}
+.home-date{font-size:13px;opacity:.65;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.home-greeting{font-size:26px;font-weight:900;margin-bottom:18px;}
+.today-word-chip{
+  display:inline-block;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);
+  color:#fff;font-size:22px;font-weight:900;padding:10px 24px;border-radius:100px;margin:4px;
+}
+.today-word-chip.done{background:var(--green);border-color:var(--green);}
+.home-content{padding:20px;max-width:480px;margin:-20px auto 0;}
+.main-btn{
+  display:block;width:100%;padding:22px;font-size:20px;font-weight:900;border:none;
+  border-radius:20px;margin-bottom:14px;box-shadow:var(--shadow);transition:transform .1s;
+}
+.main-btn:active{transform:scale(.97);}
+.btn-start{background:var(--coral);color:#fff;}
+.btn-review{background:#fff;color:var(--navy);border:3px solid #E8EAF6;}
+.progress-card{background:#fff;border-radius:20px;padding:18px 20px;box-shadow:var(--shadow);}
+.prog-label{font-size:12px;font-weight:800;color:#9E9E9E;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.prog-bar-wrap{background:#F3F4F6;border-radius:100px;height:14px;overflow:hidden;margin-bottom:6px;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:100px;transition:width .5s ease;}
+.prog-text{font-size:13px;color:#777;font-weight:700;}
+
+/* ── LESSON ── */
+#screen-lesson{min-height:100vh;background:var(--bg);}
+.lesson-header{
+  background:linear-gradient(135deg,var(--coral),#e53935);
+  padding:18px 24px 28px;color:#fff;text-align:center;position:relative;
+}
+.lesson-back{
+  position:absolute;left:14px;top:16px;background:rgba(255,255,255,.2);
+  border:none;color:#fff;font-size:15px;font-weight:700;padding:8px 14px;border-radius:12px;
+}
+.phase-label{font-size:13px;opacity:.75;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.phase-title{font-size:22px;font-weight:900;}
+.phase-dots{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+.pdot{width:10px;height:10px;border-radius:100px;background:rgba(255,255,255,.3);transition:all .3s;}
+.pdot.active{background:#fff;width:28px;}
+.pdot.done{background:rgba(255,255,255,.6);}
+
+.lesson-body{padding:16px 16px 32px;max-width:480px;margin:0 auto;}
+.lesson-card{background:#fff;border-radius:24px;padding:28px 22px;box-shadow:var(--shadow);text-align:center;}
+
+/* INTRO phase */
+.word-big{font-size:64px;font-weight:900;color:var(--navy);letter-spacing:4px;margin:12px 0;}
+.word-emoji-big{font-size:80px;display:block;margin-bottom:12px;}
+.word-hint-text{font-size:17px;color:#666;font-style:italic;margin-bottom:20px;}
+.hear-count{font-size:14px;color:#aaa;margin-top:10px;}
+
+/* SOUNDS phase */
+.sounds-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0;}
+.sound-chunk{
+  font-size:28px;font-weight:900;padding:14px 20px;border-radius:16px;
+  border:3px solid transparent;background:#F3F4F6;color:var(--navy);
+  transition:all .3s;
+}
+.sound-chunk.lit{background:var(--gold);border-color:var(--gold);transform:scale(1.12);}
+.sounds-hint{font-size:15px;color:#888;margin-bottom:16px;}
+
+/* BUILD phase */
+.build-word-ref{font-size:20px;color:#bbb;margin-bottom:6px;font-weight:700;letter-spacing:3px;}
+.letter-boxes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0;}
+.lbox{
+  width:52px;height:62px;border-radius:14px;border:3px solid #E0E0E0;
+  font-size:30px;font-weight:900;display:flex;align-items:center;justify-content:center;
+  color:var(--navy);background:#fff;transition:all .2s;
+}
+.lbox.filled{border-color:var(--teal);background:#F0FFFE;}
+.lbox.correct{border-color:var(--green);background:#F1FFF3;animation:popIn .25s ease;}
+.lbox.wrong{border-color:var(--coral);animation:shake .3s ease;}
+.lbox.current{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,77,255,.2);}
+@keyframes popIn{0%{transform:scale(.8);}60%{transform:scale(1.15);}100%{transform:scale(1);}}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.build-keyboard{margin-top:16px;}
+.build-input{
+  font-size:32px;font-family:'Nunito',sans-serif;font-weight:800;
+  position:absolute;opacity:0;width:1px;height:1px;
+}
+.build-round-badge{
+  display:inline-block;background:var(--purple);color:#fff;
+  font-size:12px;font-weight:800;padding:4px 12px;border-radius:100px;margin-bottom:12px;
+}
+
+/* STORY phase */
+.story-text{
+  font-size:20px;line-height:1.8;color:var(--navy);text-align:left;
+  border-radius:16px;background:#FFFBF0;padding:20px;border:2px solid var(--gold);
+}
+.story-text mark{
+  background:var(--gold);padding:2px 6px;border-radius:6px;cursor:pointer;
+  font-weight:900;transition:all .2s;border:2px solid var(--gold);
+}
+.story-text mark.found{background:var(--green);border-color:var(--green);cursor:default;}
+.story-counter{font-size:18px;font-weight:800;color:var(--purple);margin-top:14px;}
+
+/* SPELL phase */
+.spell-hint-row{margin-bottom:16px;}
+.spell-input-hidden{
+  font-size:32px;font-family:'Nunito',sans-serif;font-weight:800;text-align:center;
+  position:absolute;opacity:0;width:1px;height:1px;
+}
+.spell-reveal{font-size:17px;color:#aaa;margin-top:12px;}
+.attempts-left{font-size:14px;color:#aaa;margin-top:8px;}
+
+/* BUTTONS */
+.big-btn{
+  display:block;width:100%;padding:20px;font-size:20px;font-weight:900;border:none;
+  border-radius:18px;margin-top:16px;box-shadow:0 4px 20px rgba(0,0,0,.12);transition:transform .1s;
+  color:#fff;
+}
+.big-btn:active{transform:scale(.97);}
+.btn-teal{background:var(--teal);}
+.btn-purple{background:var(--purple);}
+.btn-green{background:var(--green);}
+.btn-gold{background:var(--gold);color:var(--navy);}
+.btn-coral{background:var(--coral);}
+
+/* REVIEW */
+#screen-review{background:var(--bg);min-height:100vh;}
+.review-header{
+  background:linear-gradient(135deg,var(--teal),#00838f);
+  padding:20px 24px 28px;color:#fff;text-align:center;position:relative;
+}
+.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px;max-width:480px;margin:0 auto;}
+.rword-card{
+  background:#fff;border-radius:16px;padding:14px 8px;text-align:center;
+  cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.08);border:3px solid transparent;transition:transform .1s;
+}
+.rword-card:active{transform:scale(.93);}
+.rword-card.mastered{border-color:var(--green);}
+.rword-word{font-size:16px;font-weight:900;color:var(--navy);margin-bottom:2px;}
+.rword-stars{font-size:11px;}
+
+/* WORD CHECK */
+#screen-wordcheck{min-height:100vh;background:var(--bg);}
+.wc-header{background:linear-gradient(135deg,var(--purple),#4a148c);padding:20px 24px 32px;color:#fff;text-align:center;position:relative;}
+.wc-count{font-size:14px;opacity:.75;margin-top:4px;}
+.wc-body{padding:20px 16px;max-width:480px;margin:0 auto;}
+.wc-card{background:#fff;border-radius:28px;padding:36px 24px;box-shadow:var(--shadow);text-align:center;margin-bottom:20px;}
+.wc-word-display{font-size:56px;font-weight:900;color:var(--navy);letter-spacing:3px;margin:12px 0;}
+.wc-emoji-display{font-size:72px;display:block;margin-bottom:8px;}
+.wc-hint-display{font-size:15px;color:#888;font-style:italic;margin-top:4px;}
+.wc-btn-row{display:flex;gap:14px;margin-bottom:14px;}
+.wc-red-btn,.wc-green-btn{
+  flex:1;padding:22px 12px;font-size:18px;font-weight:900;border:none;
+  border-radius:18px;color:#fff;font-family:'Nunito',sans-serif;cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);transition:transform .1s;
+}
+.wc-red-btn{background:var(--coral);}
+.wc-green-btn{background:var(--green);}
+.wc-red-btn:active,.wc-green-btn:active{transform:scale(.95);}
+.wc-done-card{background:#fff;border-radius:24px;padding:32px 24px;box-shadow:var(--shadow);text-align:center;}
+.wc-pile-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:14px 0;}
+.wc-dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+.wc-dot-known{background:var(--green);}
+.wc-dot-active{background:var(--coral);}
+
+/* CELEBRATE */
+#screen-celebrate{
+  min-height:100vh;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px 24px;
+  background:linear-gradient(135deg,var(--purple),var(--coral));color:#fff;
+}
+.cel-emoji{font-size:100px;animation:bounce .7s infinite alternate;}
+@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-22px);}}
+.cel-title{font-size:40px;font-weight:900;margin:16px 0 8px;}
+.cel-sub{font-size:20px;opacity:.9;margin-bottom:36px;}
+
+/* CONFETTI */
+.confetti-piece{position:fixed;top:-30px;animation:cffall linear forwards;z-index:999;pointer-events:none;}
+@keyframes cffall{to{transform:translateY(115vh) rotate(720deg);}}
+
+/* MISC */
+.sm-btn{
+  background:rgba(255,255,255,.2);border:none;color:#fff;font-size:15px;font-weight:700;
+  padding:8px 16px;border-radius:12px;font-family:'Nunito',sans-serif;
+}
+.stars-badge{background:var(--gold);color:var(--navy);font-weight:900;font-size:15px;padding:6px 14px;border-radius:100px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP ═══ -->
+<div id="screen-setup" class="screen">
+  <div class="setup-icon">🔬🍳🏀</div>
+  <h1 class="setup-title">Spelling Stars!</h1>
+  <p class="setup-sub">What's your name, spelling champion?</p>
+  <input id="name-input" class="setup-input" type="text" placeholder="Your name" autocomplete="off">
+  <button class="big-btn btn-gold" style="max-width:260px;margin-top:0;" onclick="saveName()">Let's Go! →</button>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div id="screen-home" class="screen">
+  <div class="home-hero">
+    <div class="home-date" id="home-date"></div>
+    <div class="home-greeting" id="home-greeting"></div>
+    <div id="today-chips"></div>
+  </div>
+  <div class="home-content">
+    <button class="main-btn btn-start" id="start-btn" onclick="startLesson()"></button>
+    <button class="main-btn btn-review" onclick="startWordCheck()">⚡ Word Check</button>
+    <div class="progress-card">
+      <div class="prog-label">Summer Progress</div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill"></div></div>
+      <div class="prog-text" id="prog-text"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LESSON ═══ -->
+<div id="screen-lesson" class="screen">
+  <div class="lesson-header">
+    <button class="lesson-back sm-btn" onclick="showHome()">← Home</button>
+    <div class="phase-label" id="phase-label"></div>
+    <div class="phase-title" id="phase-title"></div>
+    <div class="phase-dots" id="phase-dots"></div>
+  </div>
+  <div class="lesson-body">
+
+    <!-- Phase 1: INTRO -->
+    <div id="phase-intro" class="lesson-card">
+      <span class="word-emoji-big" id="intro-emoji"></span>
+      <div class="word-big" id="intro-word"></div>
+      <div class="word-hint-text" id="intro-hint"></div>
+      <button class="big-btn btn-teal" onclick="hearWord()">🔊 Hear the Word</button>
+      <div class="hear-count" id="hear-count">Tap to hear it — try 3 times!</div>
+      <button class="big-btn btn-purple" id="intro-next" style="display:none;" onclick="goPhase(1)">I know it! Let's go →</button>
+    </div>
+
+    <!-- Phase 2: SOUNDS -->
+    <div id="phase-sounds" class="lesson-card" style="display:none;">
+      <div style="font-size:15px;color:#888;margin-bottom:4px;">The word <strong id="sounds-word" style="color:var(--navy);"></strong> has these sounds:</div>
+      <div class="sounds-row" id="sounds-row"></div>
+      <div class="sounds-hint">Tap each sound to hear it!</div>
+      <button class="big-btn btn-teal" onclick="playAllSounds()">🔊 Hear them all!</button>
+      <button class="big-btn btn-purple" id="sounds-next" style="margin-top:12px;" onclick="goPhase(2)">Got it! →</button>
+    </div>
+
+    <!-- Phase 3: BUILD IT -->
+    <div id="phase-build" class="lesson-card" style="display:none;">
+      <div class="build-round-badge" id="build-badge">Round 1 of 2 — word shown above for help</div>
+      <div class="build-word-ref" id="build-ref"></div>
+      <div style="font-size:15px;color:#888;margin-bottom:8px;">Type each letter to build the word:</div>
+      <div class="letter-boxes" id="letter-boxes"></div>
+      <input id="build-input" class="build-input" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    </div>
+
+    <!-- Phase 4: STORY -->
+    <div id="phase-story" class="lesson-card" style="display:none;">
+      <div style="font-size:15px;color:#888;margin-bottom:10px;">Read the story — tap every <span id="story-target-chip" style="font-weight:900;color:var(--purple);"></span> you see!</div>
+      <div class="story-text" id="story-text"></div>
+      <div class="story-counter" id="story-counter"></div>
+      <button class="big-btn btn-teal" onclick="readStory()">🔊 Read it to me!</button>
+      <button class="big-btn btn-green" id="story-next" style="display:none;" onclick="goPhase(4)">Great! Now spell it →</button>
+    </div>
+
+    <!-- Phase 5: SPELL IT -->
+    <div id="phase-spell" class="lesson-card" style="display:none;">
+      <span id="spell-emoji" style="font-size:70px;display:block;margin-bottom:8px;"></span>
+      <div style="font-size:15px;color:#888;margin-bottom:4px;">You heard it. Now spell it!</div>
+      <div class="letter-boxes" id="spell-boxes"></div>
+      <input id="spell-input" class="spell-input-hidden" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      <button class="big-btn btn-teal" style="margin-top:4px;" onclick="speakCurrent()">🔊 Hear it again</button>
+      <div class="attempts-left" id="attempts-left"></div>
+      <div class="spell-reveal" id="spell-reveal"></div>
+    </div>
+
+    <!-- Phase 6: DONE -->
+    <div id="phase-done" class="lesson-card" style="display:none;text-align:center;">
+      <div style="font-size:80px;" id="done-emoji">🌟</div>
+      <div style="font-size:28px;font-weight:900;color:var(--navy);margin:12px 0 6px;" id="done-title"></div>
+      <div style="font-size:17px;color:#666;margin-bottom:20px;" id="done-sub"></div>
+      <button class="big-btn btn-green" id="done-next-btn"></button>
+      <button class="big-btn btn-review" style="background:#F3F4F6;color:var(--navy);margin-top:10px;" onclick="showHome()">🏠 Go Home</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ REVIEW ═══ -->
+<div id="screen-review" class="screen">
+  <div class="review-header">
+    <button class="lesson-back sm-btn" onclick="showHome()">← Home</button>
+    <div style="font-size:22px;font-weight:900;">All Your Words ⭐</div>
+    <div style="font-size:13px;opacity:.7;margin-top:4px;">Tap any word to practice it</div>
+  </div>
+  <div class="review-grid" id="review-grid"></div>
+</div>
+
+<!-- ═══ WORD CHECK ═══ -->
+<div id="screen-wordcheck" class="screen">
+  <div class="wc-header">
+    <button class="lesson-back sm-btn" onclick="showHome()">← Home</button>
+    <div style="font-size:22px;font-weight:900;">⚡ Word Check</div>
+    <div class="wc-count" id="wc-count"></div>
+  </div>
+  <div class="wc-body">
+    <div id="wc-main-card" class="wc-card">
+      <span class="wc-emoji-display" id="wc-emoji"></span>
+      <div class="wc-word-display" id="wc-word"></div>
+      <div class="wc-hint-display" id="wc-hint"></div>
+      <button class="sm-btn" style="background:rgba(0,0,0,.07);color:var(--navy);margin-top:10px;font-size:14px;" onclick="speakCurrent()">🔊 Hear it</button>
+    </div>
+    <div class="wc-btn-row" id="wc-btn-row">
+      <button class="wc-red-btn" onclick="wordCheckAnswer(false)">🔴 Still learning</button>
+      <button class="wc-green-btn" onclick="wordCheckAnswer(true)">🟢 I know it!</button>
+    </div>
+    <div id="wc-done-card" class="wc-done-card" style="display:none;">
+      <div style="font-size:56px;" id="wc-done-emoji">🌟</div>
+      <div style="font-size:24px;font-weight:900;color:var(--navy);margin:10px 0 6px;" id="wc-done-title"></div>
+      <div style="font-size:16px;color:#777;margin-bottom:16px;" id="wc-done-sub"></div>
+      <div class="wc-pile-row" id="wc-pile-dots"></div>
+      <button class="big-btn btn-green" onclick="showHome()" style="margin-top:8px;">🏠 Go Home</button>
+      <button class="big-btn" style="background:#F3F4F6;color:var(--navy);margin-top:10px;" onclick="startReview()">📖 See All Words</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CELEBRATE ═══ -->
+<div id="screen-celebrate" class="screen">
+  <div class="cel-emoji" id="cel-emoji">🎉</div>
+  <div class="cel-title" id="cel-title">Amazing!</div>
+  <div class="cel-sub" id="cel-sub">You did it!</div>
+  <button class="big-btn btn-gold" style="max-width:280px;" onclick="showHome()">🏠 Go Home</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// WORD DATA
+// ═══════════════════════════════════════════════════════
+const START = new Date('2026-06-09T00:00:00');
+
+// SCHEDULE[day] = array of words unlocked that day
+// Kindergarten: 2/day (days 0-24), First Grade: 1/day (days 25-79)
+const SCHEDULE = [
+  ['the','like'],['put','as'],['are','was'],['of','see'],['my','they'],
+  ['is','will'],['stop','into'],['any','a'],['get','from'],['now','one'],
+  ['on','no'],['off','new'],['two','and'],['want','he'],['give','come'],
+  ['to','with'],['has','or'],['who','for'],['said','have'],['by','what'],
+  ['go','you'],['me','went'],['where','I'],['in','his'],['do','why'],
+  ['were'],['people'],['too'],['use'],['another'],['does'],['saw'],['eye'],
+  ['today'],['pull'],['some'],['both'],['all'],['yesterday'],['wash'],
+  ['good'],['should'],['again'],['first'],['every'],['there'],['could'],
+  ['boy'],['around'],['everyone'],['done'],['would'],['girl'],['going'],
+  ['know'],['her'],['over'],['sign'],['walk'],['knew'],['here'],['love'],
+  ['your'],['say'],['friend'],['under'],['live'],['which'],['their'],['been'],
+  ['down'],['out'],['look'],['how'],['our'],['onto'],['day'],['also'],['once'],['other']
+];
+
+const WORDS = {
+  'the':{emoji:'📚',hint:'You say THE all the time!',sounds:['th','e'],story:'I went to {the} kitchen. {The} oven was warm. {The} soup smelled amazing. I love {the} way it tastes!'},
+  'like':{emoji:'🏀',hint:'I LIKE to play basketball!',sounds:['l','i','ke'],story:'I {like} to play basketball. I {like} cooking experiments too. Do you {like} making food? I {like} it a lot!'},
+  'put':{emoji:'🍳',hint:'PUT it in the pan!',sounds:['p','u','t'],story:'{Put} the flour in the bowl. {Put} it in carefully. She {put} the pan on the stove. Then she {put} on her chef hat!'},
+  'as':{emoji:'⚡',hint:'Fast AS a rocket!',sounds:['a','z'],story:'She ran {as} fast {as} a cheetah. The cake was {as} sweet {as} honey. I was {as} happy {as} can be!'},
+  'are':{emoji:'⭐',hint:'You ARE a star!',sounds:['ar','e'],story:'We {are} scientists today! You {are} so good at spelling. Your bones {are} strong. {Are} you ready to cook?'},
+  'was':{emoji:'🎂',hint:'That WAS delicious!',sounds:['w','u','z'],story:'She {was} at the science lab. The soup {was} delicious. He {was} the best basketball player. It {was} a great day!'},
+  'of':{emoji:'🥣',hint:'A bowl OF soup!',sounds:['o','v'],story:'A bowl {of} soup for you! The bones {of} your hand are tiny. She made a basket {of} cookies. I want more {of} it!'},
+  'see':{emoji:'👁️',hint:'SEE with your eyes!',sounds:['s','ee'],story:'Can you {see} the microscope? I can {see} the court. Let\'s {see} what\'s in the pot! {See} how it bubbles?'},
+  'my':{emoji:'🏀',hint:'MY favorite sport is basketball!',sounds:['m','y'],story:'{My} heart beats strong. {My} recipe is secret. {My} team scored a basket. {My} soup is ready!'},
+  'they':{emoji:'👫',hint:'THEY scored a basket!',sounds:['th','ey'],story:'{They} played basketball all day. {They} cooked soup together. {They} found a new cell. {They} were amazing!'},
+  'is':{emoji:'🔬',hint:'Science IS amazing!',sounds:['i','z'],story:'Science {is} so cool! Basketball {is} my favorite sport. Cooking {is} really fun. Your brain {is} incredible!'},
+  'will':{emoji:'✨',hint:'I WILL learn this word!',sounds:['w','i','ll'],story:'I {will} make you soup! She {will} score a basket. We {will} do an experiment. You {will} love it!'},
+  'stop':{emoji:'🍪',hint:'STOP — the cookies are done!',sounds:['st','o','p'],story:'{Stop} and taste the soup! {Stop} the timer now! She had to {stop} and wash her hands. Don\'t {stop} stirring!'},
+  'into':{emoji:'🏀',hint:'Shoot INTO the basket!',sounds:['in','to'],story:'Stir it {into} the pot! She jumped {into} the pool. The ball went {into} the basket! Pour it {into} the bowl.'},
+  'any':{emoji:'🍕',hint:'Do you want ANY more?',sounds:['an','y'],story:'Do you have {any} ingredients? Is there {any} soup left? She didn\'t miss {any} baskets. {Any} more please?'},
+  'a':{emoji:'🧪',hint:'A little scientist!',sounds:['a'],story:'She is {a} scientist. He is {a} chef. She is {a} basketball star! What {a} great experiment!'},
+  'get':{emoji:'🏀',hint:'GET the basketball!',sounds:['g','e','t'],story:'{Get} the basketball! {Get} the ingredients ready. Let\'s {get} started! {Get} your lab coat on.'},
+  'from':{emoji:'🧑‍🍳',hint:'Made FROM scratch!',sounds:['fr','o','m'],story:'The soup is {from} scratch! She came {from} far away to play. The bones {from} your leg are strong. Made {from} love!'},
+  'now':{emoji:'⏰',hint:'Do it right NOW!',sounds:['n','ow'],story:'Do it {now}! {Now} it\'s time to cook. The heart is pumping {now}! Score the basket {now}!'},
+  'one':{emoji:'🧂',hint:'ONE more ingredient!',sounds:['w','un'],story:'{One} more ingredient! She scored {one} more basket. There is only {one} brain in your body. Just {one} more try!'},
+  'on':{emoji:'🏀',hint:'Dribble ON the court!',sounds:['o','n'],story:'Dribble {on} the court! Put the pot {on} the stove. {On} your mark, get set, cook! Jump {on} it!'},
+  'no':{emoji:'🙅',hint:'NO more sugar!',sounds:['n','o'],story:'{No} more sugar! There is {no} stopping her. She said {no} to losing the game. {No} way she missed that shot!'},
+  'off':{emoji:'⏰',hint:'The timer went OFF!',sounds:['o','ff'],story:'Turn {off} the oven! The timer went {off}! She ran {off} the court. Take your shoes {off} first.'},
+  'new':{emoji:'📖',hint:'A NEW recipe today!',sounds:['n','ew'],story:'A {new} recipe today! She has {new} basketball shoes. Let\'s try a {new} experiment. A {new} discovery!'},
+  'two':{emoji:'👁️',hint:'TWO eyes on your face!',sounds:['t','oo'],story:'I have {two} eyes. {Two} cups of flour please. She scored {two} baskets! You have {two} lungs!'},
+  'and':{emoji:'🧂',hint:'Salt AND pepper!',sounds:['a','n','d'],story:'Salt {and} pepper! She loves cooking {and} science. Basketball {and} soccer are fun. Stir {and} taste!'},
+  'want':{emoji:'🍎',hint:'I WANT an apple!',sounds:['w','o','nt'],story:'I {want} to be a chef! Do you {want} to play? I {want} to do an experiment. I {want} more soup!'},
+  'he':{emoji:'🔬',hint:'HE loves science!',sounds:['h','e'],story:'{He} cooked the soup. {He} scored the basket. {He} looked in the microscope. {He} is great!'},
+  'give':{emoji:'🤝',hint:'GIVE me five!',sounds:['g','i','v'],story:'{Give} me the ball! {Give} me a taste! She will {give} you the recipe. {Give} it your best shot!'},
+  'come':{emoji:'🍽️',hint:'COME try my soup!',sounds:['c','um'],story:'{Come} try my soup! {Come} play basketball! {Come} see this experiment. {Come} on, let\'s go!'},
+  'to':{emoji:'🍳',hint:'Time TO cook!',sounds:['t','oo'],story:'Time {to} cook! Ready {to} play! She went {to} the science lab. {To} the court we go!'},
+  'with':{emoji:'🥄',hint:'Stir WITH a spoon!',sounds:['w','i','th'],story:'Stir {with} a spoon. Play {with} the team. Mix {with} your hands. Win {with} great teamwork!'},
+  'has':{emoji:'🏀',hint:'She HAS the ball!',sounds:['h','a','z'],story:'She {has} the ball! The soup {has} carrots. Your body {has} 206 bones. She {has} great skills!'},
+  'or':{emoji:'🥗',hint:'Soup OR salad?',sounds:['or'],story:'Soup {or} salad? Basketball {or} soccer? Lab coat {or} chef hat? You decide — this {or} that?'},
+  'who':{emoji:'🧑‍🍳',hint:'WHO made this delicious food?',sounds:['h','oo'],story:'{Who} made this soup? {Who} scored the basket? {Who} is the best scientist? {Who} wants more?'},
+  'for':{emoji:'🎁',hint:'A recipe FOR you!',sounds:['f','or'],story:'A recipe {for} you! A point {for} our team! An experiment {for} science. This one\'s {for} you!'},
+  'said':{emoji:'💬',hint:'She SAID "great shot!"',sounds:['s','ed'],story:'She {said} "score!" She {said} the soup was yummy. He {said} the experiment worked. They {said} it was great!'},
+  'have':{emoji:'🦴',hint:'We HAVE 206 bones!',sounds:['h','av'],story:'We {have} 206 bones! I {have} a recipe. Does she {have} the ball? {Have} you tried it?'},
+  'by':{emoji:'🧑‍🍳',hint:'Made BY a chef!',sounds:['b','y'],story:'Made {by} a chef! The basket was scored {by} her. The discovery was made {by} a scientist. Standing {by}!'},
+  'what':{emoji:'🤔',hint:'WHAT is in this soup?',sounds:['wh','u','t'],story:'{What} is in this soup? {What} a great basket! {What} does the heart do? {What} an experiment!'},
+  'go':{emoji:'🏃',hint:'Ready, set, GO!',sounds:['g','o'],story:'Ready, set, {go}! {Go} score a basket! {Go} try the soup! {Go} do science!'},
+  'you':{emoji:'⭐',hint:'YOU are a spelling star!',sounds:['y','oo'],story:'{You} are a great chef! {You} scored the basket! {You} are a scientist! {You} can do it!'},
+  'me':{emoji:'🍪',hint:'Help ME bake!',sounds:['m','e'],story:'Help {me} bake! Pass {me} the ball! Show {me} the microscope. Give {me} a taste!'},
+  'went':{emoji:'🏀',hint:'She WENT to the game!',sounds:['w','e','nt'],story:'She {went} to the game. He {went} to the kitchen. They {went} to the science lab. We {went} to score!'},
+  'where':{emoji:'🗺️',hint:'WHERE is the gym?',sounds:['wh','air'],story:'{Where} is the basketball? {Where} is the recipe? {Where} are my goggles? {Where} did it go?'},
+  'I':{emoji:'🔬',hint:'I love science!',sounds:['I'],story:'{I} love science! {I} want to cook. {I} scored a basket! {I} think {I} can do it!'},
+  'in':{emoji:'🏀',hint:'Dunk IN the basket!',sounds:['i','n'],story:'Dunk {in} the basket! Stir {in} the salt. Put it {in} the pot. She went {in} for the win!'},
+  'his':{emoji:'🫀',hint:'HIS heart beats fast!',sounds:['h','i','z'],story:'{His} heart beats fast. {His} soup is delicious. {His} shot went in. {His} experiment worked!'},
+  'do':{emoji:'🧪',hint:'DO an experiment!',sounds:['d','oo'],story:'{Do} an experiment! {Do} you want soup? {Do} your best on the court. What {do} you think?'},
+  'why':{emoji:'🍞',hint:'WHY does bread rise?',sounds:['wh','y'],story:'{Why} does bread rise? {Why} does the heart beat? {Why} is basketball so fun? {Why} not try?'},
+  'were':{emoji:'🍳',hint:'They WERE cooking!',sounds:['w','ur'],story:'We {were} at the science lab. They {were} cooking together. The players {were} amazing. We {were} the best team!'},
+  'people':{emoji:'🫁',hint:'PEOPLE have two lungs!',sounds:['pee','p','ul'],story:'{People} have two lungs. {People} love to eat soup. {People} cheer at basketball games. {People} love science!'},
+  'too':{emoji:'🙋',hint:'I want some TOO!',sounds:['t','oo'],story:'I want soup {too}! I love science {too}! She plays basketball {too}. Can I come {too}?'},
+  'use':{emoji:'🩺',hint:'USE a stethoscope!',sounds:['y','oos'],story:'We {use} our lungs to breathe. Chefs {use} sharp knives carefully. Players {use} their legs to jump. {Use} it!'},
+  'another':{emoji:'🍪',hint:'ANOTHER cookie please!',sounds:['a','no','ther'],story:'Can I have {another} cookie? She scored {another} basket. Let\'s try {another} experiment. Just {another} one!'},
+  'does':{emoji:'🫀',hint:'DOES your heart beat fast?',sounds:['d','uz'],story:'{Does} your heart beat fast? {Does} the soup taste good? {Does} she have the ball? {Does} it work?'},
+  'saw':{emoji:'🏀',hint:'I SAW the basketball game!',sounds:['s','aw'],story:'I {saw} the basketball game. She {saw} cells in the microscope. We {saw} the soup bubbling. I {saw} it go in!'},
+  'eye':{emoji:'👁️',hint:'The EYE sees everything!',sounds:['I'],story:'Your {eye} has many parts. The {eye} can see tiny things. Close one {eye} and look! What a cool {eye}!'},
+  'today':{emoji:'☀️',hint:'TODAY is a great day!',sounds:['to','day'],story:'{Today} we cook soup! {Today} I play basketball. {Today} is a science day! {Today} is the best day!'},
+  'pull':{emoji:'🍞',hint:'PULL the bread apart!',sounds:['p','ul'],story:'{Pull} the bread apart. {Pull} the basketball close. Your muscles {pull} your bones. {Pull} hard!'},
+  'some':{emoji:'🥦',hint:'Eat SOME vegetables!',sounds:['s','um'],story:'Eat {some} vegetables! Do {some} science today. Score {some} baskets! Have {some} soup!'},
+  'both':{emoji:'🙌',hint:'BOTH hands in the dough!',sounds:['b','oth'],story:'Use {both} hands to stir. {Both} teams played hard. {Both} lungs help you breathe. {Both} of us scored!'},
+  'all':{emoji:'🧑‍🍳',hint:'ALL the ingredients are ready!',sounds:['a','ll'],story:'{All} the ingredients are ready! She made {all} the baskets. {All} your bones work together. {All} done!'},
+  'yesterday':{emoji:'🏀',hint:'YESTERDAY we played ball!',sounds:['yes','ter','day'],story:'{Yesterday} we made soup. {Yesterday} was game day. {Yesterday} we did an experiment. {Yesterday} was fun!'},
+  'wash':{emoji:'🧼',hint:'WASH your hands before cooking!',sounds:['w','ash'],story:'{Wash} your hands before cooking! {Wash} the vegetables. {Wash} before touching your face. Always {wash}!'},
+  'good':{emoji:'⭐',hint:'GOOD job spelling!',sounds:['g','oo','d'],story:'That soup is so {good}! {Good} shot! You are {good} at science. {Good} job today!'},
+  'should':{emoji:'🥕',hint:'You SHOULD eat your veggies!',sounds:['sh','ood'],story:'You {should} eat your veggies! She {should} dribble left. You {should} wear your lab coat. You {should} try it!'},
+  'again':{emoji:'💪',hint:'Try AGAIN!',sounds:['a','gen'],story:'Try it {again}! Cook it {again}! Shoot {again}! She did it {again} and scored!'},
+  'first':{emoji:'🔥',hint:'FIRST, preheat the oven!',sounds:['f','ir','st'],story:'{First} preheat the oven. {First} dribble, then shoot. {First} put on your goggles. {First} things first!'},
+  'every':{emoji:'🔬',hint:'EVERY cell is alive!',sounds:['ev','er','y'],story:'{Every} cell is alive! {Every} day she practiced. She ate {every} bite. {Every} shot counts!'},
+  'there':{emoji:'🦴',hint:'THERE are 206 bones!',sounds:['th','air'],story:'{There} are 206 bones in your body. {There} is soup on the stove. {There} goes the ball! Over {there}!'},
+  'could':{emoji:'🏀',hint:'She COULD dunk the ball!',sounds:['c','ood'],story:'She {could} dunk the ball! I {could} eat this soup all day. He {could} see the cells! We {could} win!'},
+  'boy':{emoji:'🔬',hint:'The BOY loves science!',sounds:['b','oy'],story:'The {boy} loves to cook. The {boy} scored the basket. The {boy} was a scientist. That {boy} is great!'},
+  'around':{emoji:'🏃',hint:'Run AROUND the court!',sounds:['a','round'],story:'Run {around} the court! Stir {around} and {around}. Look {around} the lab. Go {around} the cones!'},
+  'everyone':{emoji:'🍳',hint:'EVERYONE loves soup!',sounds:['ev','ry','wun'],story:'{Everyone} loves soup! {Everyone} cheered! {Everyone} in class learned something new. {Everyone} played!'},
+  'done':{emoji:'🎂',hint:'The cake is DONE!',sounds:['d','un'],story:'The cake is {done}! The experiment is {done}! Are you {done}? We are {done} for today!'},
+  'would':{emoji:'🍽️',hint:'I WOULD love more soup!',sounds:['w','ood'],story:'I {would} love more soup. She {would} make a great chef. He {would} score the basket. {Would} you like some?'},
+  'girl':{emoji:'🏀',hint:'The GIRL scored!',sounds:['g','url'],story:'The {girl} scored! The {girl} loves science. The {girl} made delicious soup. That {girl} is amazing!'},
+  'going':{emoji:'🔬',hint:'GOING to the science fair!',sounds:['go','ing'],story:'We are {going} to cook! She is {going} to score. I am {going} to the science fair. We are {going} to win!'},
+  'know':{emoji:'🧠',hint:'I KNOW how the brain works!',sounds:['n','o'],story:'I {know} how the heart works. Do you {know} this recipe? She {know}s how to dribble. I {know} it!'},
+  'her':{emoji:'🧠',hint:'HER brain is amazing!',sounds:['h','ur'],story:'Give {her} the ball! {Her} soup is amazing. {Her} experiment worked! Cheer for {her}!'},
+  'over':{emoji:'🏆',hint:'Game OVER — you won!',sounds:['o','ver'],story:'Game {over} — you won! {Over} the stove she stirred. It\'s {over}! You got {over} 10 points!'},
+  'sign':{emoji:'👨‍🍳',hint:'A SIGN of a great chef!',sounds:['s','ine'],story:'A {sign} of a great chef! The {sign} said Science Lab. {Sign} your name on your recipe. Good {sign}!'},
+  'walk':{emoji:'🏟️',hint:'WALK to the gym!',sounds:['w','aw','k'],story:'{Walk} to the gym. {Walk} to the kitchen. {Walk} like a scientist. Let\'s {walk} together!'},
+  'knew':{emoji:'🧠',hint:'She KNEW the answer!',sounds:['n','oo'],story:'She {knew} the answer! I {knew} the recipe. He {knew} she would score. She {knew} it all along!'},
+  'here':{emoji:'🍳',hint:'Cook right HERE!',sounds:['h','ear'],story:'Come {here} to cook! The ball is {here}! The microscope is right {here}. Put it {here}!'},
+  'love':{emoji:'🏀',hint:'I LOVE basketball!',sounds:['l','uv'],story:'I {love} basketball! I {love} science! I {love} homemade soup. I {love} learning new words!'},
+  'your':{emoji:'🧠',hint:'YOUR brain is incredible!',sounds:['y','or'],story:'Eat {your} vegetables! Dribble with {your} left hand. {Your} heart is amazing. It\'s {your} turn!'},
+  'say':{emoji:'📢',hint:'SAY the ingredients out loud!',sounds:['s','ay'],story:'{Say} the ingredients out loud. {Say} "great shot!" {Say} the steps of the experiment. What do you {say}?'},
+  'friend':{emoji:'🔬',hint:'My FRIEND loves science!',sounds:['fr','end'],story:'My {friend} loves basketball. My {friend} and I cooked soup. My {friend} is a scientist too. Best {friend}!'},
+  'under':{emoji:'🔬',hint:'Look UNDER the microscope!',sounds:['un','der'],story:'Look {under} the microscope. {Under} the bowl is a plate. Dribble {under} your leg. It\'s {under} there!'},
+  'live':{emoji:'🏀',hint:'We LIVE to play ball!',sounds:['l','iv'],story:'We {live} to play ball! Cells need food to {live}. I could {live} on this soup. {Live} it up!'},
+  'which':{emoji:'🤔',hint:'WHICH ingredient goes first?',sounds:['wh','ich'],story:'{Which} ingredient goes first? {Which} team scored? {Which} cell is that? {Which} one is yours?'},
+  'their':{emoji:'🏀',hint:'THEIR team won!',sounds:['th','air'],story:'{Their} team won! {Their} soup was delicious. {Their} experiment worked! It was {their} big day!'},
+  'been':{emoji:'🍳',hint:'I have BEEN cooking all day!',sounds:['b','een'],story:'I have {been} cooking all day! She has {been} playing basketball. Have you {been} to the science lab? We\'ve {been} here!'},
+  'down':{emoji:'🏀',hint:'Bounce DOWN the court!',sounds:['d','own'],story:'Bounce {down} the court. Pour it {down} into the bowl. Run {down} the hallway. She put it {down}!'},
+  'out':{emoji:'🏀',hint:'OUT of bounds!',sounds:['ow','t'],story:'{Out} of bounds! Stir the soup {out} and in. She ran {out} of ideas. {Out} she went to play!'},
+  'look':{emoji:'🔬',hint:'LOOK through the microscope!',sounds:['l','oo','k'],story:'{Look} through the microscope! {Look} at the soup! {Look} at that basket! {Look} how she runs!'},
+  'how':{emoji:'🫀',hint:'HOW does the heart work?',sounds:['h','ow'],story:'{How} does the heart work? {How} do you make soup? {How} do you dribble? {How} great is that?'},
+  'our':{emoji:'🏆',hint:'OUR team won!',sounds:['ow','er'],story:'{Our} team won! {Our} soup is ready. {Our} experiment is complete! {Our} class is the best!'},
+  'onto':{emoji:'🏀',hint:'Step ONTO the court!',sounds:['on','to'],story:'Step {onto} the court! Scoop {onto} the plate. Put it {onto} the table. She ran {onto} the field!'},
+  'day':{emoji:'🔬',hint:'A DAY in the science lab!',sounds:['d','ay'],story:'What a great {day}! Every {day} she practiced. {Day} one of cooking class! Best {day} ever!'},
+  'also':{emoji:'🏀',hint:'I ALSO love basketball!',sounds:['al','so'],story:'I {also} love science. She {also} makes soup. They {also} play basketball. You {also} did great!'},
+  'once':{emoji:'🌟',hint:'ONCE upon a time, a little scientist!',sounds:['w','unce'],story:'{Once} upon a time, a little scientist. She scored {once}! {Once} you try it, you\'ll love it. Just {once} more!'},
+  'other':{emoji:'🏀',hint:'The OTHER team played great!',sounds:['u','ther'],story:'The {other} team scored too. Try the {other} ingredient. Look at the {other} side. The {other} player ran fast!'},
+};
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let curWord = '';
+let curPhase = 0; // 0-5
+let hearCount = 0;
+let buildLetter = 0;
+let buildRound = 0; // 0=with hint, 1=without
+let storyFound = 0;
+let storyTotal = 0;
+let spellAttempts = 0;
+let spellBoxIdx = 0;
+let lessonQueue = []; // words to practice in this session
+let lessonIdx = 0;
+let reviewMode = false;
+
+function getName() { return localStorage.getItem('spelling_name') || ''; }
+function setName(n) { localStorage.setItem('spelling_name', n); }
+function getProgress() { return JSON.parse(localStorage.getItem('spelling_prog') || '{}'); }
+function saveProgress(p) { localStorage.setItem('spelling_prog', JSON.stringify(p)); }
+function todayStr() { const d=new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+
+function getDayNum() {
+  const t=new Date(); t.setHours(0,0,0,0);
+  const s=new Date(START); s.setHours(0,0,0,0);
+  return Math.max(0,Math.floor((t-s)/86400000));
+}
+
+function getTodaysWords() {
+  const d=getDayNum();
+  if(d>=SCHEDULE.length) return [];
+  return SCHEDULE[d];
+}
+
+function getAllUnlocked() {
+  const d=getDayNum();
+  const out=[];
+  for(let i=0;i<=Math.min(d,SCHEDULE.length-1);i++) out.push(...SCHEDULE[i]);
+  return out;
+}
+
+function getCorrectCount() {
+  const p=getProgress();
+  return Object.values(p).filter(v=>v.correct>0).length;
+}
+
+function isWordDoneToday(word) {
+  const p=getProgress();
+  const k=word.toLowerCase();
+  return p[k] && p[k].lastDate===todayStr() && p[k].correct>0;
+}
+
+function recordCorrect(word) {
+  const p=getProgress();
+  const k=word.toLowerCase();
+  if(!p[k]) p[k]={correct:0,attempts:0};
+  p[k].correct++;
+  p[k].attempts++;
+  p[k].lastDate=todayStr();
+  saveProgress(p);
+}
+
+function recordWrong(word) {
+  const p=getProgress();
+  const k=word.toLowerCase();
+  if(!p[k]) p[k]={correct:0,attempts:0};
+  p[k].attempts++;
+  saveProgress(p);
+}
+
+// ─── SPACED REPETITION ────────────────────────────────
+function getSR(){return JSON.parse(localStorage.getItem('spelling_sr')||'{}');}
+function saveSR(sr){localStorage.setItem('spelling_sr',JSON.stringify(sr));}
+
+function dateStr(d){
+  d=d||new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function addDays(ds,n){
+  const d=new Date(ds+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  return dateStr(d);
+}
+
+function markWordGreen(word){
+  const sr=getSR();
+  const k=word.toLowerCase();
+  const cur=sr[k]||{pile:'active',interval:1,greenCount:0};
+  cur.greenCount=(cur.greenCount||0)+1;
+  if(cur.pile==='active'){cur.pile='known';cur.interval=5;}
+  else{cur.interval=Math.min(30,cur.interval*2);}
+  cur.nextReview=addDays(dateStr(),cur.interval);
+  sr[k]=cur;
+  saveSR(sr);
+}
+
+function markWordRed(word){
+  const sr=getSR();
+  const k=word.toLowerCase();
+  const cur=sr[k]||{pile:'active',interval:1,greenCount:0};
+  cur.pile='active';
+  cur.interval=1;
+  cur.nextReview=dateStr();
+  sr[k]=cur;
+  saveSR(sr);
+}
+
+function getWordCheckQueue(){
+  const sr=getSR();
+  const today=dateStr();
+  const unlocked=getAllUnlocked();
+  // Active pile: most recently unlocked first, cap at 10
+  const active=unlocked.filter(w=>!sr[w.toLowerCase()]||sr[w.toLowerCase()].pile==='active');
+  const recent=active.slice().reverse().slice(0,10);
+  // Known-pile words due for refresh
+  const due=unlocked.filter(w=>{
+    const s=sr[w.toLowerCase()];
+    return s&&s.pile==='known'&&s.nextReview<=today&&!recent.includes(w);
+  });
+  return [...recent,...due];
+}
+
+// ═══════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function init() {
+  if(!getName()) {
+    showScreen('screen-setup');
+    setTimeout(()=>document.getElementById('name-input').focus(),200);
+  } else {
+    showHome();
+  }
+}
+
+document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')saveName();});
+
+function saveName() {
+  const n=document.getElementById('name-input').value.trim();
+  if(!n) return;
+  setName(n);
+  showHome();
+}
+
+function showHome() {
+  reviewMode=false;
+  const name=getName();
+  const tw=getTodaysWords();
+  const d=getDayNum();
+  const total=SCHEDULE.flat().length;
+  const done=getCorrectCount();
+  const hour=new Date().getHours();
+  const greet=hour<12?'Good morning':'Good afternoon';
+
+  document.getElementById('home-greeting').textContent=`${greet}, ${name}! 🌟`;
+  document.getElementById('home-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  // Today's word chips
+  const chips=document.getElementById('today-chips');
+  if(d>=SCHEDULE.length){
+    chips.innerHTML='<span style="font-size:18px;color:#fff;">🎉 You finished all the words this summer!</span>';
+  } else {
+    chips.innerHTML=tw.map(w=>`<span class="today-word-chip ${isWordDoneToday(w)?'done':''}">${isWordDoneToday(w)?'✓ ':''}${w}</span>`).join('');
+  }
+
+  // Start button
+  const btn=document.getElementById('start-btn');
+  const notDone=tw.filter(w=>!isWordDoneToday(w));
+  if(d>=SCHEDULE.length){
+    btn.textContent='🏆 Practice All Words';
+    btn.style.background='#7C4DFF';
+  } else if(notDone.length===0){
+    btn.textContent="🎉 All done! Practice again?";
+    btn.style.background='#6BCB77';
+  } else {
+    btn.textContent=`✏️ Start Today's Lesson`;
+    btn.style.background='#FF6B6B';
+  }
+
+  // Progress
+  const pct=Math.round(done/total*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-text').textContent=`${done} of ${total} words practiced · ${pct}% complete`;
+
+  showScreen('screen-home');
+}
+
+// ═══════════════════════════════════════════════════════
+// LESSON
+// ═══════════════════════════════════════════════════════
+function startLesson() {
+  const d=getDayNum();
+  let words;
+  if(d>=SCHEDULE.length){
+    words=SCHEDULE.flat();
+  } else {
+    const tw=getTodaysWords();
+    const notDone=tw.filter(w=>!isWordDoneToday(w));
+    words=notDone.length>0 ? notDone : tw;
+  }
+  lessonQueue=words;
+  lessonIdx=0;
+  reviewMode=false;
+  beginWord(lessonQueue[lessonIdx]);
+}
+
+function beginWord(word) {
+  curWord=word;
+  curPhase=0;
+  hearCount=0;
+  buildLetter=0;
+  buildRound=0;
+  storyFound=0;
+  spellAttempts=0;
+  spellBoxIdx=0;
+  renderPhase(0);
+  showScreen('screen-lesson');
+}
+
+const PHASE_NAMES=['Meet the Word','Sound It Out','Build It!','Story Time','Spell It!',''];
+const PHASE_LABELS=['PHASE 1 OF 5','PHASE 2 OF 5','PHASE 3 OF 5','PHASE 4 OF 5','PHASE 5 OF 5',''];
+
+function renderPhase(ph) {
+  curPhase=ph;
+  // Hide all phases
+  ['phase-intro','phase-sounds','phase-build','phase-story','phase-spell','phase-done'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  // Update header
+  document.getElementById('phase-label').textContent=PHASE_LABELS[ph]||'';
+  document.getElementById('phase-title').textContent=PHASE_NAMES[ph]||'';
+  // Dots
+  const dots=document.getElementById('phase-dots');
+  dots.innerHTML='';
+  if(ph<5){
+    for(let i=0;i<5;i++){
+      const d=document.createElement('div');
+      d.className='pdot'+(i===ph?' active':i<ph?' done':'');
+      dots.appendChild(d);
+    }
+  }
+
+  const wd=WORDS[curWord]||{emoji:'✨',hint:'You can do it!',sounds:[...curWord],story:`The word {${curWord}} is in this sentence. Say {${curWord}}! Great job saying {${curWord}}!`};
+
+  if(ph===0) renderIntro(wd);
+  else if(ph===1) renderSounds(wd);
+  else if(ph===2) renderBuild(wd);
+  else if(ph===3) renderStory(wd);
+  else if(ph===4) renderSpell(wd);
+  else renderDone(wd);
+}
+
+function goPhase(ph) { renderPhase(ph); }
+
+// ── PHASE 0: INTRO ────────────────────────────────────
+function renderIntro(wd) {
+  document.getElementById('phase-intro').style.display='block';
+  document.getElementById('intro-emoji').textContent=wd.emoji;
+  document.getElementById('intro-word').textContent=curWord;
+  document.getElementById('intro-hint').textContent=wd.hint;
+  hearCount=0;
+  document.getElementById('hear-count').textContent='Tap to hear it — try 3 times!';
+  document.getElementById('intro-next').style.display='none';
+  speakCurrent();
+}
+
+function hearWord() {
+  speakCurrent();
+  hearCount++;
+  const left=Math.max(0,3-hearCount);
+  if(left>0) document.getElementById('hear-count').textContent=`Hear it ${left} more time${left===1?'':'s'}!`;
+  else { document.getElementById('hear-count').textContent='Great! You heard it!'; document.getElementById('intro-next').style.display='block'; }
+}
+
+// ── PHASE 1: SOUNDS ───────────────────────────────────
+function renderSounds(wd) {
+  document.getElementById('phase-sounds').style.display='block';
+  document.getElementById('sounds-word').textContent=curWord;
+  const row=document.getElementById('sounds-row');
+  row.innerHTML='';
+  const colors=['#FFD93D','#4ECDC4','#FF6B6B','#7C4DFF','#6BCB77','#FF8A65'];
+  wd.sounds.forEach((s,i)=>{
+    const div=document.createElement('div');
+    div.className='sound-chunk';
+    div.textContent=s;
+    div.style.borderColor=colors[i%colors.length];
+    div.style.background=colors[i%colors.length]+'33';
+    div.onclick=()=>litSound(div,s);
+    row.appendChild(div);
+  });
+}
+
+function litSound(el,sound) {
+  el.classList.add('lit');
+  speak(sound);
+  setTimeout(()=>el.classList.remove('lit'),800);
+}
+
+function playAllSounds() {
+  const chunks=document.querySelectorAll('.sound-chunk');
+  let delay=0;
+  chunks.forEach((ch,i)=>{
+    setTimeout(()=>{ ch.classList.add('lit'); speak(ch.textContent); },delay);
+    setTimeout(()=>ch.classList.remove('lit'),delay+700);
+    delay+=800;
+  });
+  setTimeout(()=>{ speakCurrent(); },delay+200);
+}
+
+// ── PHASE 2: BUILD IT ─────────────────────────────────
+function renderBuild(wd) {
+  document.getElementById('phase-build').style.display='block';
+  buildLetter=0;
+  buildRound=0;
+  document.getElementById('build-badge').textContent='Round 1 of 2 — word shown above for help!';
+  document.getElementById('build-ref').textContent=curWord;
+  renderLetterBoxes('letter-boxes', curWord, 'build');
+  const inp=document.getElementById('build-input');
+  inp.value='';
+  inp.focus();
+}
+
+function renderLetterBoxes(containerId, word, mode) {
+  const container=document.getElementById(containerId);
+  container.innerHTML='';
+  word.split('').forEach((ch,i)=>{
+    const box=document.createElement('div');
+    box.className='lbox'+(i===0?' current':'');
+    box.id=`${mode}-lbox-${i}`;
+    container.appendChild(box);
+  });
+}
+
+document.getElementById('build-input').addEventListener('keydown',e=>{
+  if(e.key.length!==1||e.ctrlKey||e.metaKey) return;
+  e.preventDefault();
+  const typed=e.key.toLowerCase();
+  const expected=curWord[buildLetter].toLowerCase();
+  const box=document.getElementById(`build-lbox-${buildLetter}`);
+  if(!box) return;
+  if(typed===expected){
+    box.textContent=curWord[buildLetter];
+    box.classList.remove('current');
+    box.classList.add('correct');
+    buildLetter++;
+    if(buildLetter<curWord.length){
+      document.getElementById(`build-lbox-${buildLetter}`).classList.add('current');
+    } else {
+      buildComplete();
+    }
+  } else {
+    box.classList.add('wrong');
+    speak('Oops!');
+    setTimeout(()=>box.classList.remove('wrong'),400);
+  }
+});
+
+document.getElementById('build-input').addEventListener('focus',()=>{});
+
+function buildComplete() {
+  spawnConfetti(12);
+  setTimeout(()=>{
+    if(buildRound===0){
+      buildRound=1;
+      buildLetter=0;
+      document.getElementById('build-badge').textContent='Round 2 of 2 — from memory now! 💪';
+      document.getElementById('build-ref').textContent='';
+      renderLetterBoxes('letter-boxes',curWord,'build');
+      document.getElementById('build-input').value='';
+      document.getElementById('build-input').focus();
+    } else {
+      goPhase(3);
+    }
+  },900);
+}
+
+// ── PHASE 3: STORY ─────────────────────────────────────
+function renderStory(wd) {
+  document.getElementById('phase-story').style.display='block';
+  document.getElementById('story-target-chip').textContent=`"${curWord}"`;
+  storyFound=0;
+
+  // Build story HTML - replace {word} with clickable spans
+  let html=wd.story;
+  const regex=new RegExp('\\{'+escapeRegex(curWord)+'\\}','gi');
+  storyTotal=(html.match(regex)||[]).length;
+  html=html.replace(regex,`<mark onclick="tapWord(this)">${curWord}</mark>`);
+  document.getElementById('story-text').innerHTML=html;
+  updateStoryCounter();
+  document.getElementById('story-next').style.display='none';
+  readStory();
+}
+
+function escapeRegex(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+function tapWord(el) {
+  if(el.classList.contains('found')) return;
+  el.classList.add('found');
+  storyFound++;
+  speak('Yes!');
+  spawnConfetti(5);
+  updateStoryCounter();
+}
+
+function updateStoryCounter() {
+  const left=storyTotal-storyFound;
+  const el=document.getElementById('story-counter');
+  if(left>0) el.textContent=`Find ${left} more!`;
+  else { el.textContent='You found them all! 🎉'; document.getElementById('story-next').style.display='block'; }
+}
+
+function readStory() {
+  const wd=WORDS[curWord];
+  if(!wd) return;
+  const plain=wd.story.replace(/\{([^}]+)\}/g,'$1');
+  speak(plain,0.75);
+}
+
+// ── PHASE 4: SPELL IT ─────────────────────────────────
+function renderSpell(wd) {
+  document.getElementById('phase-spell').style.display='block';
+  document.getElementById('spell-emoji').textContent=wd.emoji;
+  spellAttempts=0;
+  spellBoxIdx=0;
+  document.getElementById('attempts-left').textContent='3 tries!';
+  document.getElementById('spell-reveal').textContent='';
+  renderLetterBoxes('spell-boxes',curWord,'spell');
+  const inp=document.getElementById('spell-input');
+  inp.value='';
+  inp.focus();
+  setTimeout(()=>speakCurrent(),300);
+}
+
+document.getElementById('spell-input').addEventListener('keydown',e=>{
+  if(curPhase!==4) return;
+  if(e.key==='Backspace'){
+    e.preventDefault();
+    if(spellBoxIdx>0){
+      spellBoxIdx--;
+      const box=document.getElementById(`spell-lbox-${spellBoxIdx}`);
+      box.textContent='';
+      box.className='lbox current';
+      if(spellBoxIdx+1<curWord.length) document.getElementById(`spell-lbox-${spellBoxIdx+1}`).className='lbox';
+    }
+    return;
+  }
+  if(e.key.length!==1||e.ctrlKey||e.metaKey) return;
+  e.preventDefault();
+  if(spellBoxIdx>=curWord.length) return;
+  const box=document.getElementById(`spell-lbox-${spellBoxIdx}`);
+  if(!box) return;
+  box.textContent=e.key;
+  box.classList.remove('current');
+  box.classList.add('filled');
+  spellBoxIdx++;
+  if(spellBoxIdx<curWord.length){
+    document.getElementById(`spell-lbox-${spellBoxIdx}`).classList.add('current');
+  } else {
+    // Auto-check when all boxes filled
+    setTimeout(checkSpell,200);
+  }
+});
+
+function checkSpell() {
+  let typed='';
+  for(let i=0;i<curWord.length;i++){
+    const b=document.getElementById(`spell-lbox-${i}`);
+    typed+=b?b.textContent:'';
+  }
+  if(typed.toLowerCase()===curWord.toLowerCase()){
+    // CORRECT
+    recordCorrect(curWord);
+    for(let i=0;i<curWord.length;i++){
+      const b=document.getElementById(`spell-lbox-${i}`);
+      if(b){b.classList.remove('filled','current');b.classList.add('correct');}
+    }
+    spawnConfetti(20);
+    speak('Amazing!');
+    setTimeout(()=>goPhase(5),1200);
+  } else {
+    // WRONG
+    spellAttempts++;
+    recordWrong(curWord);
+    for(let i=0;i<curWord.length;i++){
+      const b=document.getElementById(`spell-lbox-${i}`);
+      if(b){b.classList.add('wrong');}
+    }
+    speak('Try again!');
+    if(spellAttempts>=3){
+      document.getElementById('attempts-left').textContent='';
+      document.getElementById('spell-reveal').textContent=`The word is: ${curWord}`;
+      setTimeout(()=>goPhase(5),2000);
+      return;
+    }
+    setTimeout(()=>{
+      const left=3-spellAttempts;
+      document.getElementById('attempts-left').textContent=`${left} tr${left===1?'y':'ies'} left!`;
+      // Reset boxes
+      spellBoxIdx=0;
+      for(let i=0;i<curWord.length;i++){
+        const b=document.getElementById(`spell-lbox-${i}`);
+        if(b){b.className='lbox'+(i===0?' current':''); b.textContent='';}
+      }
+      const inp=document.getElementById('spell-input');
+      inp.value='';
+      inp.focus();
+      speakCurrent();
+    },800);
+  }
+}
+
+// ── PHASE 5: DONE ─────────────────────────────────────
+function renderDone(wd) {
+  document.getElementById('phase-done').style.display='block';
+  const msgs=[
+    {emoji:'🌟',title:'You nailed it!',sub:`"${curWord}" is in your brain now!`},
+    {emoji:'🏆',title:'Champion!',sub:`You spelled "${curWord}" perfectly!`},
+    {emoji:'🔬',title:'Super Scientist!',sub:`Your brain just learned "${curWord}"!`},
+    {emoji:'🏀',title:'Nothing but net!',sub:`"${curWord}" is all yours now!`},
+    {emoji:'🧑‍🍳',title:'Master Chef!',sub:`You cooked up "${curWord}" perfectly!`},
+  ];
+  const pick=msgs[Math.floor(Math.random()*msgs.length)];
+  document.getElementById('done-emoji').textContent=pick.emoji;
+  document.getElementById('done-title').textContent=pick.title;
+  document.getElementById('done-sub').textContent=pick.sub;
+  spawnConfetti(30);
+
+  const btn=document.getElementById('done-next-btn');
+  if(reviewMode){
+    btn.textContent='← Back to Review';
+    btn.onclick=()=>startReview();
+    btn.style.background='var(--teal)';
+  } else {
+    lessonIdx++;
+    if(lessonIdx<lessonQueue.length){
+      const next=lessonQueue[lessonIdx];
+      btn.textContent=`Next Word: "${next}" →`;
+      btn.onclick=()=>beginWord(next);
+      btn.style.background='var(--purple)';
+    } else {
+      // All today's words done — offer review of past words
+      const allPrev=getAllUnlocked().filter(w=>!getTodaysWords().includes(w));
+      if(allPrev.length>0){
+        btn.textContent='⚡ Word Check →';
+        btn.onclick=()=>startWordCheck();
+        btn.style.background='var(--purple)';
+      } else {
+        btn.textContent='🏠 Go Home';
+        btn.onclick=()=>showCelebration();
+        btn.style.background='var(--gold)';
+        btn.style.color='var(--navy)';
+      }
+    }
+  }
+}
+
+// ── QUICK REVIEW ──────────────────────────────────────
+function startQuickReview(words) {
+  // Shuffle
+  const shuffled=[...words].sort(()=>Math.random()-.5).slice(0,Math.min(words.length,15));
+  lessonQueue=shuffled;
+  lessonIdx=0;
+  reviewMode=true;
+  beginWord(lessonQueue[0]);
+}
+
+// ── WORD CHECK ────────────────────────────────────────
+let wcQueue=[],wcIdx=0,wcGreenCount=0,wcRedCount=0,wcResults=[];
+
+function startWordCheck(){
+  wcQueue=getWordCheckQueue();
+  if(wcQueue.length===0){
+    if(getAllUnlocked().length>0){startReview();}
+    else{showCelebration();}
+    return;
+  }
+  wcIdx=0; wcGreenCount=0; wcRedCount=0; wcResults=[];
+  document.getElementById('wc-main-card').style.display='';
+  document.getElementById('wc-btn-row').style.display='';
+  document.getElementById('wc-done-card').style.display='none';
+  showWordCheckCard();
+  showScreen('screen-wordcheck');
+}
+
+function showWordCheckCard(){
+  const word=wcQueue[wcIdx];
+  curWord=word;
+  const wd=WORDS[word]||{emoji:'✨',hint:'You can do it!'};
+  document.getElementById('wc-emoji').textContent=wd.emoji;
+  document.getElementById('wc-word').textContent=word;
+  document.getElementById('wc-hint').textContent=wd.hint;
+  document.getElementById('wc-count').textContent=`${wcIdx+1} of ${wcQueue.length}`;
+  setTimeout(()=>speakCurrent(),250);
+}
+
+function wordCheckAnswer(isGreen){
+  wcResults.push(isGreen);
+  if(isGreen){markWordGreen(wcQueue[wcIdx]);wcGreenCount++;spawnConfetti(6);speak('Yes!');}
+  else{markWordRed(wcQueue[wcIdx]);wcRedCount++;speak('Keep going!');}
+  wcIdx++;
+  if(wcIdx<wcQueue.length){setTimeout(()=>showWordCheckCard(),320);}
+  else{setTimeout(()=>showWordCheckDone(),400);}
+}
+
+function showWordCheckDone(){
+  document.getElementById('wc-main-card').style.display='none';
+  document.getElementById('wc-btn-row').style.display='none';
+  document.getElementById('wc-done-card').style.display='';
+  document.getElementById('wc-count').textContent='Done!';
+  const name=getName();
+  if(wcGreenCount===wcQueue.length){
+    document.getElementById('wc-done-emoji').textContent='🏆';
+    document.getElementById('wc-done-title').textContent=`${name}, you know them all!`;
+    document.getElementById('wc-done-sub').textContent=`${wcGreenCount} word${wcGreenCount===1?'':'s'} in your know-it pile!`;
+  } else if(wcGreenCount>=wcRedCount){
+    document.getElementById('wc-done-emoji').textContent='🌟';
+    document.getElementById('wc-done-title').textContent='Amazing progress!';
+    document.getElementById('wc-done-sub').textContent=`${wcGreenCount} know it · ${wcRedCount} still learning`;
+  } else {
+    document.getElementById('wc-done-emoji').textContent='💪';
+    document.getElementById('wc-done-title').textContent='Keep practicing!';
+    document.getElementById('wc-done-sub').textContent=`${wcGreenCount} know it · ${wcRedCount} still learning — you've got this!`;
+  }
+  const dotsEl=document.getElementById('wc-pile-dots');
+  dotsEl.innerHTML='';
+  wcResults.forEach(green=>{
+    const dot=document.createElement('span');
+    dot.className='wc-dot '+(green?'wc-dot-known':'wc-dot-active');
+    dotsEl.appendChild(dot);
+  });
+  if(wcGreenCount>0)spawnConfetti(Math.min(wcGreenCount*4,30));
+}
+
+// ── REVIEW GRID ───────────────────────────────────────
+function startReview() {
+  const unlocked=getAllUnlocked();
+  const p=getProgress();
+  const grid=document.getElementById('review-grid');
+  grid.innerHTML='';
+  unlocked.forEach(word=>{
+    const pk=p[word.toLowerCase()]||{};
+    const mastered=(pk.correct||0)>=3;
+    const stars=Math.min(3,pk.correct||0);
+    const div=document.createElement('div');
+    div.className='rword-card'+(mastered?' mastered':'');
+    div.innerHTML=`<div class="rword-word">${word}</div><div class="rword-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>`;
+    div.onclick=()=>{reviewMode=true; lessonQueue=[word]; lessonIdx=0; beginWord(word);};
+    grid.appendChild(div);
+  });
+  showScreen('screen-review');
+}
+
+// ── CELEBRATE ─────────────────────────────────────────
+function showCelebration() {
+  const name=getName();
+  const c=[
+    {emoji:'🎉',title:`${name}, amazing!`,sub:'You finished all today\'s words!'},
+    {emoji:'🏆',title:'Spelling champion!',sub:'You\'re unstoppable!'},
+    {emoji:'🔬',title:'Genius!',sub:'Your brain is incredible!'},
+    {emoji:'🧑‍🍳',title:'Top chef!',sub:'You cooked up every word!'},
+  ][Math.floor(Math.random()*4)];
+  document.getElementById('cel-emoji').textContent=c.emoji;
+  document.getElementById('cel-title').textContent=c.title;
+  document.getElementById('cel-sub').textContent=c.sub;
+  showScreen('screen-celebrate');
+  spawnConfetti(50);
+}
+
+// ── SPEECH ────────────────────────────────────────────
+function speakCurrent() { speak(curWord,0.8); }
+
+function speak(text,rate=0.9) {
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=rate; u.pitch=1.1; u.volume=1;
+  setTimeout(()=>window.speechSynthesis.speak(u),50);
+}
+
+// ── CONFETTI ──────────────────────────────────────────
+function spawnConfetti(n=15) {
+  const e=['⭐','🎉','🏀','🔬','🍪','🌟','💫','🎊','✨','🏆','🍳','🧠'];
+  for(let i=0;i<n;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-piece';
+      el.textContent=e[Math.floor(Math.random()*e.length)];
+      el.style.left=Math.random()*100+'vw';
+      el.style.fontSize=(14+Math.random()*22)+'px';
+      el.style.animationDuration=(1.5+Math.random()*2)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),4000);
+    },i*50);
+  }
+}
+
+// Keep build input focused
+document.getElementById('build-input').addEventListener('blur',()=>{
+  if(curPhase===2) setTimeout(()=>document.getElementById('build-input').focus(),100);
+});
+document.getElementById('spell-input').addEventListener('blur',()=>{
+  if(curPhase===4) setTimeout(()=>document.getElementById('spell-input').focus(),100);
+});
+
+// ── START ──────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

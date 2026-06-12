@@ -480,7 +480,7 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
     <div id="phase-trace" class="lesson-card" style="display:none;">
       <div style="font-size:15px;color:#888;margin-bottom:4px;">Trace the word with your finger!</div>
       <div style="font-size:13px;color:#bbb;margin-bottom:10px;">Follow the gray letters below ↓</div>
-      <canvas id="trace-canvas" style="width:100%;border-radius:14px;border:3px solid #E8EAF6;background:#FAFAFE;touch-action:none;display:block;"></canvas>
+      <canvas id="trace-canvas" style="width:100%;border-radius:14px;border:3px solid #E8EAF6;background:#FAFAFE;touch-action:none;display:block;cursor:crosshair;"></canvas>
       <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="big-btn btn-coral" style="flex:1;padding:16px;" onclick="clearTrace()">↺ Try again</button>
         <button class="big-btn btn-purple" style="flex:2;padding:16px;" onclick="showScramble()">Done! →</button>
@@ -1620,7 +1620,7 @@ function tapMissingChoice(btn,letter,correct){
 }
 
 // ── TRACE IT ──────────────────────────────────────────
-let tracingActive=false,traceLastX=0,traceLastY=0,traceEventsSetup=false;
+let tracingActive=false,traceLastX=0,traceLastY=0,traceAbort=null;
 
 function showTrace(){
   ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
@@ -1629,6 +1629,7 @@ function showTrace(){
   document.getElementById('phase-label').textContent='PHASE 4 OF 8';
   document.getElementById('phase-title').textContent='Trace It!';
   renderPhaseDots(3,8);
+  tracingActive=false;
   document.getElementById('phase-trace').style.display='block';
   setTimeout(()=>setupTraceCanvas(),60);
 }
@@ -1644,34 +1645,25 @@ function setupTraceCanvas(){
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   drawTraceGuide(ctx,cssW,cssH);
-  if(!traceEventsSetup){
-    traceEventsSetup=true;
-    canvas.addEventListener('touchstart',e=>{
-      e.preventDefault();
-      const r=canvas.getBoundingClientRect(),t=e.touches[0];
-      traceLastX=t.clientX-r.left; traceLastY=t.clientY-r.top; tracingActive=true;
-    },{passive:false});
-    canvas.addEventListener('touchmove',e=>{
-      e.preventDefault();
-      if(!tracingActive)return;
-      const r=canvas.getBoundingClientRect(),t=e.touches[0];
-      const x=t.clientX-r.left,y=t.clientY-r.top;
-      traceStroke(x,y); traceLastX=x; traceLastY=y;
-    },{passive:false});
-    canvas.addEventListener('touchend',()=>{tracingActive=false;});
-    canvas.addEventListener('mousedown',e=>{
-      const r=canvas.getBoundingClientRect();
-      traceLastX=e.clientX-r.left; traceLastY=e.clientY-r.top; tracingActive=true;
-    });
-    canvas.addEventListener('mousemove',e=>{
-      if(!tracingActive)return;
-      const r=canvas.getBoundingClientRect();
-      const x=e.clientX-r.left,y=e.clientY-r.top;
-      traceStroke(x,y); traceLastX=x; traceLastY=y;
-    });
-    canvas.addEventListener('mouseup',()=>{tracingActive=false;});
-    canvas.addEventListener('mouseleave',()=>{tracingActive=false;});
-  }
+  // Tear down old listeners, attach fresh ones
+  if(traceAbort) traceAbort.abort();
+  traceAbort=new AbortController();
+  const sig={signal:traceAbort.signal};
+  canvas.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    const r=canvas.getBoundingClientRect();
+    traceLastX=e.clientX-r.left; traceLastY=e.clientY-r.top;
+    tracingActive=true;
+    canvas.setPointerCapture(e.pointerId);
+  },sig);
+  canvas.addEventListener('pointermove',e=>{
+    if(!tracingActive)return;
+    const r=canvas.getBoundingClientRect();
+    const x=e.clientX-r.left,y=e.clientY-r.top;
+    traceStroke(x,y); traceLastX=x; traceLastY=y;
+  },sig);
+  canvas.addEventListener('pointerup',()=>{tracingActive=false;},sig);
+  canvas.addEventListener('pointercancel',()=>{tracingActive=false;},sig);
 }
 
 function drawTraceGuide(ctx,w,h){

@@ -477,7 +477,7 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
     </div>
 
     <!-- Trace It -->
-    <div id="phase-trace" class="lesson-card" style="display:none;">
+    <div id="phase-trace" class="lesson-card" style="display:none;touch-action:none;">
       <div style="font-size:15px;color:#888;margin-bottom:4px;">Trace the word with your finger!</div>
       <div style="font-size:13px;color:#bbb;margin-bottom:10px;">Follow the gray letters below ↓</div>
       <canvas id="trace-canvas" style="width:100%;border-radius:14px;border:3px solid #E8EAF6;background:#FAFAFE;touch-action:none;display:block;cursor:crosshair;"></canvas>
@@ -587,21 +587,23 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
 const START = new Date('2026-06-09T00:00:00');
 
 // SCHEDULE[day] = array of words unlocked that day
-// Kindergarten: 2/day (days 0-24), First Grade: 1/day (days 25-79)
-const SCHEDULE = [
-  ['the','like'],['put','as'],['are','was'],['of','see'],['my','they'],
-  ['is','will'],['stop','into'],['any','a'],['get','from'],['now','one'],
-  ['on','no'],['off','new'],['two','and'],['want','he'],['give','come'],
-  ['to','with'],['has','or'],['who','for'],['said','have'],['by','what'],
-  ['go','you'],['me','went'],['where','I'],['in','his'],['do','why'],
-  ['were'],['people'],['too'],['use'],['another'],['does'],['saw'],['eye'],
-  ['today'],['pull'],['some'],['both'],['all'],['yesterday'],['wash'],
-  ['good'],['should'],['again'],['first'],['every'],['there'],['could'],
-  ['boy'],['around'],['everyone'],['done'],['would'],['girl'],['going'],
-  ['know'],['her'],['over'],['sign'],['walk'],['knew'],['here'],['love'],
-  ['your'],['say'],['friend'],['under'],['live'],['which'],['their'],['been'],
-  ['down'],['out'],['look'],['how'],['our'],['onto'],['day'],['also'],['once'],['other']
-];
+// 1 kindergarten + 1 first grade word per day (days 0-49), then remaining first grade words (days 50-54)
+const K_WORDS=['the','like','put','as','are','was','of','see','my','they',
+  'is','will','stop','into','any','a','get','from','now','one',
+  'on','no','off','new','two','and','want','he','give','come',
+  'to','with','has','or','who','for','said','have','by','what',
+  'go','you','me','went','where','I','in','his','do','why'];
+
+const G_WORDS=['were','people','too','use','another','does','saw','eye',
+  'today','pull','some','both','all','yesterday','wash',
+  'good','should','again','first','every','there','could',
+  'boy','around','everyone','done','would','girl','going',
+  'know','her','over','sign','walk','knew','here','love',
+  'your','say','friend','under','live','which','their','been',
+  'down','out','look','how','our','onto','day','also','once','other'];
+
+const SCHEDULE=K_WORDS.map((k,i)=>G_WORDS[i]?[k,G_WORDS[i]]:[k])
+  .concat(G_WORDS.slice(K_WORDS.length).map(g=>[g]));
 
 const WORDS = {
   'the':{emoji:'📚',hint:'You say THE all the time!',sounds:['th','e'],story:'I went to {the} kitchen. {The} oven was warm. {The} soup smelled amazing. I love {the} way it tastes!'},
@@ -888,8 +890,9 @@ function showHome() {
     btn.textContent='🏆 Practice All Words';
     btn.style.background='#7C4DFF';
   } else if(notDone.length===0){
-    btn.textContent="🎉 All done! Practice again?";
-    btn.style.background='#6BCB77';
+    const bonus=getNextScheduledWords(d);
+    btn.textContent=bonus?'⭐ Keep going — more words!':'🎉 All done! Practice again?';
+    btn.style.background=bonus?'#7C4DFF':'#6BCB77';
   } else {
     btn.textContent=`✏️ Start Today's Lesson`;
     btn.style.background='#FF6B6B';
@@ -907,6 +910,14 @@ function showHome() {
 // ═══════════════════════════════════════════════════════
 // LESSON
 // ═══════════════════════════════════════════════════════
+function getNextScheduledWords(fromDay){
+  for(let i=fromDay+1;i<SCHEDULE.length;i++){
+    const batch=SCHEDULE[i].filter(w=>!isWordDoneToday(w));
+    if(batch.length>0) return batch;
+  }
+  return null;
+}
+
 function startLesson() {
   const d=getDayNum();
   let words;
@@ -915,7 +926,12 @@ function startLesson() {
   } else {
     const tw=getTodaysWords();
     const notDone=tw.filter(w=>!isWordDoneToday(w));
-    words=notDone.length>0 ? notDone : tw;
+    if(notDone.length>0){
+      words=notDone;
+    } else {
+      // Today's words done — keep going with next scheduled words
+      words=getNextScheduledWords(d)||tw;
+    }
   }
   lessonQueue=words;
   lessonIdx=0;
@@ -1252,17 +1268,24 @@ function renderDone(wd) {
       btn.onclick=()=>beginWord(next);
       btn.style.background='var(--purple)';
     } else {
-      // All today's words done — offer review of past words
-      const allPrev=getAllUnlocked().filter(w=>!getTodaysWords().includes(w));
-      if(allPrev.length>0){
-        btn.textContent='⚡ Word Check →';
-        btn.onclick=()=>startWordCheck();
+      // All queued words done — offer to keep going or do word check
+      const bonus=getNextScheduledWords(getDayNum());
+      if(bonus){
+        btn.textContent='⭐ Keep going!';
+        btn.onclick=()=>startLesson();
         btn.style.background='var(--purple)';
       } else {
-        btn.textContent='🏠 Go Home';
-        btn.onclick=()=>showCelebration();
-        btn.style.background='var(--gold)';
-        btn.style.color='var(--navy)';
+        const allPrev=getAllUnlocked().filter(w=>!getTodaysWords().includes(w));
+        if(allPrev.length>0){
+          btn.textContent='⚡ Word Check →';
+          btn.onclick=()=>startWordCheck();
+          btn.style.background='var(--purple)';
+        } else {
+          btn.textContent='🏠 Go Home';
+          btn.onclick=()=>showCelebration();
+          btn.style.background='var(--gold)';
+          btn.style.color='var(--navy)';
+        }
       }
     }
   }
@@ -1464,8 +1487,8 @@ function toggleWordMap(){
 function populateWordMap(){
   const sr=getSR();
   const unlocked=new Set(getAllUnlocked().map(w=>w.toLowerCase()));
-  const kWords=SCHEDULE.slice(0,25).flat();
-  const g1Words=SCHEDULE.slice(25).flat();
+  const kWords=K_WORDS;
+  const g1Words=G_WORDS;
   function chips(words,id){
     const el=document.getElementById(id);
     if(!el)return;
@@ -1638,7 +1661,7 @@ function setupTraceCanvas(){
   const canvas=document.getElementById('trace-canvas');
   const dpr=window.devicePixelRatio||1;
   const cssW=canvas.offsetWidth||300;
-  const cssH=200;
+  const cssH=300;
   canvas.style.height=cssH+'px';
   canvas.width=cssW*dpr;
   canvas.height=cssH*dpr;
@@ -1684,7 +1707,7 @@ function traceStroke(x,y){
   const canvas=document.getElementById('trace-canvas');
   const ctx=canvas.getContext('2d');
   ctx.beginPath(); ctx.moveTo(traceLastX,traceLastY); ctx.lineTo(x,y);
-  ctx.strokeStyle='#7C4DFF'; ctx.lineWidth=7; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle='#7C4DFF'; ctx.lineWidth=16; ctx.lineCap='round'; ctx.lineJoin='round';
   ctx.stroke();
 }
 

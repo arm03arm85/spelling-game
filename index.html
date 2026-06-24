@@ -640,13 +640,13 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
   <!-- Intro splash -->
   <div id="wu-intro" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:linear-gradient(135deg,#FF8A65 0%,#FFD93D 100%);">
     <div style="font-size:86px;margin-bottom:12px;">☀️</div>
-    <h2 style="font-size:30px;font-weight:900;color:#fff;margin-bottom:8px;">Daily Spell Warm-Up!</h2>
-    <p style="font-size:17px;color:rgba(255,255,255,.85);margin-bottom:20px;">Spell all 10 tricky words from memory<br>before today's lesson 💪</p>
+    <h2 style="font-size:30px;font-weight:900;color:#fff;margin-bottom:8px;">Daily Warm-Up!</h2>
+    <p style="font-size:17px;color:rgba(255,255,255,.85);margin-bottom:20px;">Practice 10 tricky words 3 different ways<br>before today's lesson 💪</p>
     <div id="wu-intro-chips" style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:340px;margin-bottom:28px;"></div>
     <button class="big-btn btn-gold" style="max-width:260px;color:var(--navy);font-size:20px;" onclick="startWarmup()">Let's go! ☀️</button>
   </div>
 
-  <!-- Flash the word -->
+  <!-- Flash the word (shown before every activity) -->
   <div id="wu-flash" style="display:none;">
     <div class="wu-header">
       <div class="wu-progress" id="wu-flash-count"></div>
@@ -655,16 +655,47 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
     <div class="wu-body">
       <div class="wu-card">
         <div id="wu-missed-label" class="wu-missed-badge" style="display:none;">Try again — look carefully!</div>
+        <div id="wu-activity-badge" style="display:inline-block;background:#F3F0FF;color:var(--purple);font-size:12px;font-weight:800;padding:4px 12px;border-radius:8px;margin-bottom:10px;"></div>
         <span id="wu-flash-emoji" class="wu-emoji-big"></span>
         <div id="wu-flash-word" class="wu-word-big"></div>
         <div id="wu-flash-hint" class="wu-hint"></div>
         <button class="sm-btn" style="background:rgba(0,0,0,.08);color:var(--navy);margin-top:14px;font-size:14px;" onclick="speakCurrent()">🔊 Hear it again</button>
       </div>
-      <button class="big-btn btn-gold" style="color:var(--navy);" onclick="showWarmupSpell()">Got it — hide it! →</button>
+      <button class="big-btn btn-gold" id="wu-flash-btn" style="color:var(--navy);" onclick="showWarmupActivity()">Got it! →</button>
     </div>
   </div>
 
-  <!-- Spell from memory -->
+  <!-- Activity: Spot the Spelling -->
+  <div id="wu-spot" style="display:none;">
+    <div class="wu-header">
+      <div class="wu-progress" id="wu-spot-count"></div>
+      <div class="wu-title">Spot the Spelling! 🔍</div>
+    </div>
+    <div class="wu-body">
+      <div class="wu-card">
+        <span id="wu-spot-emoji" class="wu-emoji-big"></span>
+        <div id="wu-spot-hint" style="font-size:15px;color:#888;font-style:italic;margin-bottom:18px;"></div>
+        <div id="wu-spot-choices" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity: Missing Letter -->
+  <div id="wu-missing" style="display:none;">
+    <div class="wu-header">
+      <div class="wu-progress" id="wu-missing-count"></div>
+      <div class="wu-title">Missing Letter! 🔤</div>
+    </div>
+    <div class="wu-body">
+      <div class="wu-card">
+        <span id="wu-missing-emoji" class="wu-emoji-big"></span>
+        <div class="ml-word-row" id="wu-missing-word-row" style="margin:14px 0;"></div>
+        <div class="ml-choices" id="wu-missing-choices"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity: Spell from memory -->
   <div id="wu-spell" style="display:none;">
     <div class="wu-header">
       <div class="wu-progress" id="wu-spell-count"></div>
@@ -686,7 +717,7 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
   <div id="wu-done" style="display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:linear-gradient(135deg,#FF8A65 0%,#FFD93D 100%);">
     <div style="font-size:96px;margin-bottom:12px;animation:bounce .7s infinite alternate;">🌟</div>
     <div style="font-size:36px;font-weight:900;color:#fff;margin-bottom:8px;" id="wu-done-title">Warm-Up Complete!</div>
-    <div style="font-size:18px;color:rgba(255,255,255,.85);margin-bottom:32px;" id="wu-done-sub">You spelled all 10 tricky words!</div>
+    <div style="font-size:18px;color:rgba(255,255,255,.85);margin-bottom:32px;" id="wu-done-sub">You nailed all 10 tricky words!</div>
     <button class="big-btn btn-gold" style="max-width:280px;color:var(--navy);" onclick="showHome()">Start Today's Lesson →</button>
   </div>
 
@@ -719,6 +750,10 @@ const SCHEDULE=K_WORDS.map((k,i)=>G_WORDS[i]?[k,G_WORDS[i]]:[k])
 
 // Words Maddie practices every single session before the main lesson
 const WARMUP_WORDS=['were','does','some','good','there','done','her','here','under','people'];
+// Activity rotation: spot=visual discrimination, missing=fill the blank, spell=type from memory
+const WARMUP_ACTIVITIES=['spot','missing','spell','spot','missing','spell','spot','missing','spell','spot'];
+const WU_ACTIVITY_LABEL={spot:'Spot the Spelling 🔍',missing:'Missing Letter 🔤',spell:'Spell It! ✏️'};
+const WU_ACTIVITY_BTN={spot:"Got it! Find the spelling →",missing:"Got it! Fill the blank →",spell:"Got it — hide it! →"};
 
 // Plausible misspellings for "Spot the Spelling" phase
 const WRONG_SPELLINGS={
@@ -1024,16 +1059,23 @@ let wuBoxIdx=0;      // letter position in current word
 let wuAttempts=0;    // attempts at current word
 let wuCorrect=0;     // how many nailed so far
 
+function wuHideAll(){
+  ['wu-intro','wu-flash','wu-spot','wu-missing','wu-spell','wu-done'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+}
+
 function initWarmupIntro(){
-  // Populate word chips on the intro screen
   const el=document.getElementById('wu-intro-chips');
-  if(el) el.innerHTML=WARMUP_WORDS.map(w=>`<span style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);color:#fff;font-size:14px;font-weight:900;padding:6px 13px;border-radius:100px;">${w}</span>`).join('');
+  if(el) el.innerHTML=WARMUP_WORDS.map((w,i)=>{
+    const icons={spot:'🔍',missing:'🔤',spell:'✏️'};
+    return `<span style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);color:#fff;font-size:13px;font-weight:900;padding:5px 11px;border-radius:100px;">${icons[WARMUP_ACTIVITIES[i]]} ${w}</span>`;
+  }).join('');
   wuQueue=[...WARMUP_WORDS];
   wuIdx=0; wuCorrect=0;
+  wuHideAll();
   document.getElementById('wu-intro').style.display='flex';
-  document.getElementById('wu-flash').style.display='none';
-  document.getElementById('wu-spell').style.display='none';
-  document.getElementById('wu-done').style.display='none';
   showScreen('screen-warmup');
 }
 
@@ -1042,24 +1084,135 @@ function startWarmup(){
   showWarmupFlash(false);
 }
 
+function wuAdvance(){
+  // Called on any correct answer — moves to next word or shows done screen
+  spawnConfetti(14); speak('Yes!');
+  wuCorrect++; wuIdx++;
+  setTimeout(()=>{
+    if(wuIdx>=wuQueue.length){
+      const name=getName();
+      document.getElementById('wu-done-title').textContent=`${name}, warm-up done! 🌟`;
+      document.getElementById('wu-done-sub').textContent=`10 tricky words — spotted, filled, and spelled!`;
+      wuHideAll();
+      document.getElementById('wu-done').style.display='flex';
+      spawnConfetti(50); speak('Amazing job!');
+    } else {
+      showWarmupFlash(false);
+    }
+  },900);
+}
+
 function showWarmupFlash(wasMissed){
   const word=wuQueue[wuIdx];
   curWord=word;
   wuAttempts=0;
   const wd=WORDS[word]||{emoji:'✨',hint:'Practice makes perfect!'};
+  const activity=WARMUP_ACTIVITIES[wuIdx]||'spell';
   document.getElementById('wu-flash-count').textContent=`Word ${wuCorrect+1} of ${WARMUP_WORDS.length}`;
+  document.getElementById('wu-activity-badge').textContent=WU_ACTIVITY_LABEL[activity];
+  document.getElementById('wu-flash-btn').textContent=WU_ACTIVITY_BTN[activity];
   document.getElementById('wu-flash-emoji').textContent=wd.emoji;
   document.getElementById('wu-flash-word').textContent=word;
   document.getElementById('wu-flash-hint').textContent=wd.hint;
-  const missed=document.getElementById('wu-missed-label');
-  missed.style.display=wasMissed?'inline-block':'none';
-  document.getElementById('wu-intro').style.display='none';
+  document.getElementById('wu-missed-label').style.display=wasMissed?'inline-block':'none';
+  wuHideAll();
   document.getElementById('wu-flash').style.display='block';
-  document.getElementById('wu-spell').style.display='none';
-  document.getElementById('wu-done').style.display='none';
   setTimeout(()=>speakCurrent(),200);
 }
 
+function showWarmupActivity(){
+  const activity=WARMUP_ACTIVITIES[wuIdx]||'spell';
+  if(activity==='spot') showWarmupSpot();
+  else if(activity==='missing') showWarmupMissing();
+  else showWarmupSpell();
+}
+
+// ── WARM-UP: SPOT THE SPELLING ─────────────────────────
+function showWarmupSpot(){
+  const word=wuQueue[wuIdx];
+  const wd=WORDS[word]||{emoji:'✨',hint:'Which one is spelled right?'};
+  document.getElementById('wu-spot-count').textContent=`Word ${wuCorrect+1} of ${WARMUP_WORDS.length} — spot it!`;
+  document.getElementById('wu-spot-emoji').textContent=wd.emoji;
+  document.getElementById('wu-spot-hint').textContent=wd.hint;
+  const wrongs=getWrongSpellings(word);
+  const options=[word,...wrongs].sort(()=>Math.random()-.5);
+  const box=document.getElementById('wu-spot-choices');
+  box.innerHTML='';
+  const cols=['#FFD93D','#4ECDC4','#FF6B6B','#7C4DFF'];
+  options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.style.cssText=`background:${cols[i%cols.length]};border:none;border-radius:16px;font-size:22px;font-weight:900;font-family:'Nunito',sans-serif;padding:14px 22px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);color:var(--navy);transition:transform .1s;`;
+    btn.textContent=opt;
+    btn.onclick=()=>{
+      if(opt.toLowerCase()===word.toLowerCase()){
+        btn.style.background='var(--green)';
+        box.querySelectorAll('button').forEach(b=>b.disabled=true);
+        wuAdvance();
+      } else {
+        btn.style.opacity='.35'; btn.disabled=true;
+        btn.style.background='var(--coral)';
+        speak('Try again!');
+        setTimeout(()=>{btn.style.background=cols[options.indexOf(opt)%cols.length];},350);
+      }
+    };
+    box.appendChild(btn);
+  });
+  wuHideAll();
+  document.getElementById('wu-spot').style.display='block';
+  setTimeout(()=>speakCurrent(),200);
+}
+
+// ── WARM-UP: MISSING LETTER ────────────────────────────
+function showWarmupMissing(){
+  const word=wuQueue[wuIdx];
+  const wd=WORDS[word]||{emoji:'✨'};
+  document.getElementById('wu-missing-count').textContent=`Word ${wuCorrect+1} of ${WARMUP_WORDS.length} — fill the blank!`;
+  document.getElementById('wu-missing-emoji').textContent=wd.emoji;
+  const blankIdx=word.length<=1?0:Math.floor(Math.random()*(word.length-1))+0;
+  const correct=word[blankIdx].toLowerCase();
+  const row=document.getElementById('wu-missing-word-row');
+  row.innerHTML='';
+  word.split('').forEach((l,i)=>{
+    const span=document.createElement('span');
+    if(i===blankIdx){
+      span.className='ml-blank'; span.id='wu-ml-blank'; span.textContent='_';
+    } else {
+      span.style.cssText='font-size:40px;font-weight:900;color:var(--navy);';
+      span.textContent=l;
+    }
+    row.appendChild(span);
+  });
+  const alpha='abcdefghijklmnopqrstuvwxyz';
+  const opts=[correct];
+  while(opts.length<4){const r=alpha[Math.floor(Math.random()*26)];if(!opts.includes(r))opts.push(r);}
+  opts.sort(()=>Math.random()-.5);
+  const choices=document.getElementById('wu-missing-choices');
+  choices.innerHTML='';
+  const cols=['#FFD93D','#4ECDC4','#FF6B6B','#7C4DFF'];
+  opts.forEach((letter,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ml-btn'; btn.textContent=letter;
+    btn.style.background=cols[i%cols.length];
+    btn.onclick=()=>{
+      if(letter===correct){
+        const blank=document.getElementById('wu-ml-blank');
+        if(blank){blank.textContent=letter;blank.style.color='var(--green)';blank.style.borderColor='var(--green)';}
+        choices.querySelectorAll('.ml-btn').forEach(b=>b.disabled=true);
+        wuAdvance();
+      } else {
+        btn.classList.add('ml-wrong'); btn.disabled=true;
+        speak('Try again!');
+        setTimeout(()=>btn.classList.remove('ml-wrong'),400);
+      }
+    };
+    choices.appendChild(btn);
+  });
+  wuHideAll();
+  document.getElementById('wu-missing').style.display='block';
+  setTimeout(()=>speakCurrent(),200);
+}
+
+// ── WARM-UP: SPELL FROM MEMORY ─────────────────────────
 function showWarmupSpell(){
   const word=wuQueue[wuIdx];
   const wd=WORDS[word]||{emoji:'✨',hint:'Practice makes perfect!'};
@@ -1067,8 +1220,6 @@ function showWarmupSpell(){
   document.getElementById('wu-spell-emoji').textContent=wd.emoji;
   document.getElementById('wu-spell-hint').textContent=wd.hint;
   document.getElementById('wu-attempts-left').textContent='3 tries!';
-
-  // Build letter boxes
   const container=document.getElementById('wu-letter-boxes');
   container.innerHTML='';
   word.split('').forEach((_,i)=>{
@@ -1077,11 +1228,10 @@ function showWarmupSpell(){
     box.id=`wu-lbox-${i}`;
     container.appendChild(box);
   });
-
   wuBoxIdx=0;
   const inp=document.getElementById('wu-spell-input');
   inp.value='';
-  document.getElementById('wu-flash').style.display='none';
+  wuHideAll();
   document.getElementById('wu-spell').style.display='block';
   setTimeout(()=>{ inp.focus(); speakCurrent(); },150);
 }
@@ -1093,32 +1243,12 @@ function wuCheckSpell(){
     typed+=b?b.textContent:'';
   }
   if(typed.toLowerCase()===curWord.toLowerCase()){
-    // Correct!
     for(let i=0;i<curWord.length;i++){
       const b=document.getElementById(`wu-lbox-${i}`);
       if(b){b.classList.remove('filled','current','wrong');b.classList.add('correct');}
     }
-    spawnConfetti(16);
-    speak('Yes!');
-    wuCorrect++;
-    wuIdx++;
-    setTimeout(()=>{
-      if(wuIdx>=wuQueue.length){
-        // All done!
-        const name=getName();
-        document.getElementById('wu-done-title').textContent=`${name}, warm-up complete! 🌟`;
-        document.getElementById('wu-done-sub').textContent=`You spelled all ${WARMUP_WORDS.length} tricky words from memory!`;
-        document.getElementById('wu-flash').style.display='none';
-        document.getElementById('wu-spell').style.display='none';
-        document.getElementById('wu-done').style.display='flex';
-        spawnConfetti(50);
-        speak('Amazing job!');
-      } else {
-        showWarmupFlash(false);
-      }
-    },900);
+    wuAdvance();
   } else {
-    // Wrong
     wuAttempts++;
     for(let i=0;i<curWord.length;i++){
       const b=document.getElementById(`wu-lbox-${i}`);
@@ -1126,7 +1256,6 @@ function wuCheckSpell(){
     }
     speak('Try again!');
     if(wuAttempts>=3){
-      // Show the word again before retrying
       document.getElementById('wu-attempts-left').textContent='';
       setTimeout(()=>showWarmupFlash(true),700);
       return;
@@ -1134,7 +1263,6 @@ function wuCheckSpell(){
     setTimeout(()=>{
       const left=3-wuAttempts;
       document.getElementById('wu-attempts-left').textContent=`${left} tr${left===1?'y':'ies'} left!`;
-      // Reset boxes
       wuBoxIdx=0;
       for(let i=0;i<curWord.length;i++){
         const b=document.getElementById(`wu-lbox-${i}`);

@@ -292,6 +292,25 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
   padding:8px 16px;border-radius:12px;font-family:'Nunito',sans-serif;
 }
 .stars-badge{background:var(--gold);color:var(--navy);font-weight:900;font-size:15px;padding:6px 14px;border-radius:100px;}
+
+/* ── WARM-UP ── */
+#screen-warmup{min-height:100vh;background:var(--bg);}
+.wu-header{
+  background:linear-gradient(135deg,#FF8A65 0%,#FFD93D 100%);
+  padding:18px 24px 28px;color:#fff;text-align:center;position:relative;
+}
+.wu-progress{font-size:13px;opacity:.75;letter-spacing:.06em;margin-bottom:4px;}
+.wu-title{font-size:22px;font-weight:900;}
+.wu-body{padding:20px 16px 32px;max-width:480px;margin:0 auto;}
+.wu-card{background:#fff;border-radius:28px;padding:36px 24px;box-shadow:var(--shadow);text-align:center;margin-bottom:20px;}
+.wu-word-big{font-size:58px;font-weight:900;color:var(--navy);letter-spacing:4px;margin:10px 0;}
+.wu-emoji-big{font-size:68px;display:block;margin-bottom:8px;}
+.wu-hint{font-size:16px;color:#888;font-style:italic;margin-top:6px;}
+.wu-missed-badge{
+  display:inline-block;background:#FFF3E0;color:#E65100;
+  font-size:12px;font-weight:800;padding:4px 10px;border-radius:8px;
+  margin-bottom:10px;
+}
 </style>
 </head>
 <body>
@@ -525,7 +544,15 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
       <div class="ml-choices" id="ml-choices"></div>
     </div>
 
-    <!-- Phase 4: STORY -->
+    <!-- Phase 7: SPOT THE SPELLING -->
+    <div id="phase-spot" class="lesson-card" style="display:none;">
+      <div class="build-round-badge" style="background:var(--purple);">Which one is spelled right?</div>
+      <span id="spot-emoji" style="font-size:60px;display:block;margin:10px 0 6px;"></span>
+      <div id="spot-hint" style="font-size:15px;color:#888;font-style:italic;margin-bottom:18px;"></div>
+      <div id="spot-choices" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;"></div>
+    </div>
+
+    <!-- Phase 8: STORY -->
     <div id="phase-story" class="lesson-card" style="display:none;">
       <div style="font-size:15px;color:#888;margin-bottom:10px;">Read the story — tap every <span id="story-target-chip" style="font-weight:900;color:var(--purple);"></span> you see!</div>
       <div class="story-text" id="story-text"></div>
@@ -534,8 +561,9 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
       <button class="big-btn btn-green" id="story-next" style="display:none;" onclick="goPhase(4)">Great! Now spell it →</button>
     </div>
 
-    <!-- Phase 5: SPELL IT -->
+    <!-- Phase 9: SPELL IT -->
     <div id="phase-spell" class="lesson-card" style="display:none;">
+      <div class="build-round-badge" id="spell-round-badge">Round 1 of 3 — spell from memory!</div>
       <span id="spell-emoji" style="font-size:70px;display:block;margin-bottom:8px;"></span>
       <div style="font-size:15px;color:#888;margin-bottom:4px;">You heard it. Now spell it!</div>
       <div class="letter-boxes" id="spell-boxes"></div>
@@ -604,6 +632,64 @@ button{cursor:pointer;font-family:'Nunito',sans-serif;}
   <button class="big-btn btn-gold" style="max-width:280px;" onclick="showHome()">🏠 Go Home</button>
 </div>
 
+<!-- ═══ DAILY WARM-UP ═══ -->
+<div id="screen-warmup" class="screen">
+
+  <!-- Intro splash -->
+  <div id="wu-intro" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:linear-gradient(135deg,#FF8A65 0%,#FFD93D 100%);">
+    <div style="font-size:86px;margin-bottom:12px;">☀️</div>
+    <h2 style="font-size:30px;font-weight:900;color:#fff;margin-bottom:8px;">Daily Spell Warm-Up!</h2>
+    <p style="font-size:17px;color:rgba(255,255,255,.85);margin-bottom:20px;">Spell all 10 tricky words from memory<br>before today's lesson 💪</p>
+    <div id="wu-intro-chips" style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:340px;margin-bottom:28px;"></div>
+    <button class="big-btn btn-gold" style="max-width:260px;color:var(--navy);font-size:20px;" onclick="startWarmup()">Let's go! ☀️</button>
+  </div>
+
+  <!-- Flash the word -->
+  <div id="wu-flash" style="display:none;">
+    <div class="wu-header">
+      <div class="wu-progress" id="wu-flash-count"></div>
+      <div class="wu-title">Daily Warm-Up ☀️</div>
+    </div>
+    <div class="wu-body">
+      <div class="wu-card">
+        <div id="wu-missed-label" class="wu-missed-badge" style="display:none;">Try again — look carefully!</div>
+        <span id="wu-flash-emoji" class="wu-emoji-big"></span>
+        <div id="wu-flash-word" class="wu-word-big"></div>
+        <div id="wu-flash-hint" class="wu-hint"></div>
+        <button class="sm-btn" style="background:rgba(0,0,0,.08);color:var(--navy);margin-top:14px;font-size:14px;" onclick="speakCurrent()">🔊 Hear it again</button>
+      </div>
+      <button class="big-btn btn-gold" style="color:var(--navy);" onclick="showWarmupSpell()">Got it — hide it! →</button>
+    </div>
+  </div>
+
+  <!-- Spell from memory -->
+  <div id="wu-spell" style="display:none;">
+    <div class="wu-header">
+      <div class="wu-progress" id="wu-spell-count"></div>
+      <div class="wu-title">Now spell it! 🧠</div>
+    </div>
+    <div class="wu-body">
+      <div class="wu-card">
+        <span id="wu-spell-emoji" class="wu-emoji-big"></span>
+        <div id="wu-spell-hint" style="font-size:16px;color:#888;font-style:italic;margin-bottom:16px;"></div>
+        <div class="letter-boxes" id="wu-letter-boxes"></div>
+        <input id="wu-spell-input" class="spell-input-hidden" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        <button class="sm-btn" style="background:rgba(0,0,0,.08);color:var(--navy);margin-top:16px;font-size:14px;" onclick="speakCurrent()">🔊 Hear it again</button>
+        <div id="wu-attempts-left" style="font-size:14px;color:#aaa;margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All done -->
+  <div id="wu-done" style="display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;background:linear-gradient(135deg,#FF8A65 0%,#FFD93D 100%);">
+    <div style="font-size:96px;margin-bottom:12px;animation:bounce .7s infinite alternate;">🌟</div>
+    <div style="font-size:36px;font-weight:900;color:#fff;margin-bottom:8px;" id="wu-done-title">Warm-Up Complete!</div>
+    <div style="font-size:18px;color:rgba(255,255,255,.85);margin-bottom:32px;" id="wu-done-sub">You spelled all 10 tricky words!</div>
+    <button class="big-btn btn-gold" style="max-width:280px;color:var(--navy);" onclick="showHome()">Start Today's Lesson →</button>
+  </div>
+
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════
 // WORD DATA
@@ -628,6 +714,64 @@ const G_WORDS=['were','people','too','use','another','does','saw','eye',
 
 const SCHEDULE=K_WORDS.map((k,i)=>G_WORDS[i]?[k,G_WORDS[i]]:[k])
   .concat(G_WORDS.slice(K_WORDS.length).map(g=>[g]));
+
+// Words Maddie practices every single session before the main lesson
+const WARMUP_WORDS=['were','does','some','good','there','done','her','here','under','people'];
+
+// Plausible misspellings for "Spot the Spelling" phase
+const WRONG_SPELLINGS={
+  'were':  ['wer','ware','weer'],
+  'does':  ['duz','dose','doez'],
+  'some':  ['sum','sume','sowm'],
+  'good':  ['gud','goud','goood'],
+  'there': ['ther','thare','theer'],
+  'done':  ['dun','donn','doen'],
+  'her':   ['hur','hir','herr'],
+  'here':  ['heer','hear','hire'],
+  'under': ['undr','undur','undar'],
+  'people':['pepol','peopel','peple'],
+  'the':   ['teh','tha','thee'],
+  'was':   ['waz','wus','wass'],
+  'they':  ['thay','thei','theg'],
+  'have':  ['hav','haev','heve'],
+  'said':  ['sed','saed','siad'],
+  'come':  ['cum','kome','coem'],
+  'with':  ['wth','wiht','whith'],
+  'what':  ['wut','waht','whut'],
+  'where': ['wher','whare','wheer'],
+  'know':  ['now','knoe','noe'],
+  'their': ['ther','thier','thear'],
+  'could': ['coud','culd','colud'],
+  'would': ['woud','wuld','wolud'],
+  'should':['shold','shoud','shulod'],
+};
+
+function getWrongSpellings(word) {
+  const k=word.toLowerCase();
+  if(WRONG_SPELLINGS[k]) return WRONG_SPELLINGS[k];
+  // Algorithmic fallback
+  const results=new Set();
+  const vowelSwap={a:'e',e:'a',i:'e',o:'u',u:'o'};
+  // vowel swap
+  for(let i=0;i<k.length&&results.size<3;i++){
+    if(vowelSwap[k[i]]) results.add(k.slice(0,i)+vowelSwap[k[i]]+k.slice(i+1));
+  }
+  // double a consonant
+  for(let i=0;i<k.length&&results.size<3;i++){
+    if(!'aeiou '.includes(k[i])&&k[i]!==k[i-1]) results.add(k.slice(0,i)+k[i]+k.slice(i));
+  }
+  // swap adjacent letters
+  for(let i=0;i<k.length-1&&results.size<3;i++){
+    const s=k.slice(0,i)+k[i+1]+k[i]+k.slice(i+2);
+    if(s!==k) results.add(s);
+  }
+  // drop a letter
+  for(let i=0;i<k.length&&results.size<3;i++){
+    const d=k.slice(0,i)+k.slice(i+1);
+    if(d&&d!==k) results.add(d);
+  }
+  return [...results].slice(0,3);
+}
 
 const WORDS = {
   'the':{emoji:'📚',hint:'You say THE all the time!',sounds:['th','e'],story:'Maddie ran to {the} door as fast as she could. She opened {the} door and saw a tiny kitten! {The} kitten had big blue eyes and soft white fur. Maddie knew {the} kitten had found its forever home.'},
@@ -749,6 +893,7 @@ let storyFound = 0;
 let storyTotal = 0;
 let spellAttempts = 0;
 let spellBoxIdx = 0;
+let spellRound = 0; // 0-2, must spell correctly 3 times
 let lessonQueue = []; // words to practice in this session
 let lessonIdx = 0;
 let reviewMode = false;
@@ -868,12 +1013,177 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
+// ═══════════════════════════════════════════════════════
+// DAILY WARM-UP
+// ═══════════════════════════════════════════════════════
+let wuQueue=[];      // words still to get right this session
+let wuIdx=0;         // position in wuQueue
+let wuBoxIdx=0;      // letter position in current word
+let wuAttempts=0;    // attempts at current word
+let wuCorrect=0;     // how many nailed so far
+
+function initWarmupIntro(){
+  // Populate word chips on the intro screen
+  const el=document.getElementById('wu-intro-chips');
+  if(el) el.innerHTML=WARMUP_WORDS.map(w=>`<span style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);color:#fff;font-size:14px;font-weight:900;padding:6px 13px;border-radius:100px;">${w}</span>`).join('');
+  wuQueue=[...WARMUP_WORDS];
+  wuIdx=0; wuCorrect=0;
+  document.getElementById('wu-intro').style.display='flex';
+  document.getElementById('wu-flash').style.display='none';
+  document.getElementById('wu-spell').style.display='none';
+  document.getElementById('wu-done').style.display='none';
+  showScreen('screen-warmup');
+}
+
+function startWarmup(){
+  wuIdx=0; wuCorrect=0;
+  showWarmupFlash(false);
+}
+
+function showWarmupFlash(wasMissed){
+  const word=wuQueue[wuIdx];
+  curWord=word;
+  wuAttempts=0;
+  const wd=WORDS[word]||{emoji:'✨',hint:'Practice makes perfect!'};
+  document.getElementById('wu-flash-count').textContent=`Word ${wuCorrect+1} of ${WARMUP_WORDS.length}`;
+  document.getElementById('wu-flash-emoji').textContent=wd.emoji;
+  document.getElementById('wu-flash-word').textContent=word;
+  document.getElementById('wu-flash-hint').textContent=wd.hint;
+  const missed=document.getElementById('wu-missed-label');
+  missed.style.display=wasMissed?'inline-block':'none';
+  document.getElementById('wu-intro').style.display='none';
+  document.getElementById('wu-flash').style.display='block';
+  document.getElementById('wu-spell').style.display='none';
+  document.getElementById('wu-done').style.display='none';
+  setTimeout(()=>speakCurrent(),200);
+}
+
+function showWarmupSpell(){
+  const word=wuQueue[wuIdx];
+  const wd=WORDS[word]||{emoji:'✨',hint:'Practice makes perfect!'};
+  document.getElementById('wu-spell-count').textContent=`Word ${wuCorrect+1} of ${WARMUP_WORDS.length} — spell it!`;
+  document.getElementById('wu-spell-emoji').textContent=wd.emoji;
+  document.getElementById('wu-spell-hint').textContent=wd.hint;
+  document.getElementById('wu-attempts-left').textContent='3 tries!';
+
+  // Build letter boxes
+  const container=document.getElementById('wu-letter-boxes');
+  container.innerHTML='';
+  word.split('').forEach((_,i)=>{
+    const box=document.createElement('div');
+    box.className='lbox'+(i===0?' current':'');
+    box.id=`wu-lbox-${i}`;
+    container.appendChild(box);
+  });
+
+  wuBoxIdx=0;
+  const inp=document.getElementById('wu-spell-input');
+  inp.value='';
+  document.getElementById('wu-flash').style.display='none';
+  document.getElementById('wu-spell').style.display='block';
+  setTimeout(()=>{ inp.focus(); speakCurrent(); },150);
+}
+
+function wuCheckSpell(){
+  let typed='';
+  for(let i=0;i<curWord.length;i++){
+    const b=document.getElementById(`wu-lbox-${i}`);
+    typed+=b?b.textContent:'';
+  }
+  if(typed.toLowerCase()===curWord.toLowerCase()){
+    // Correct!
+    for(let i=0;i<curWord.length;i++){
+      const b=document.getElementById(`wu-lbox-${i}`);
+      if(b){b.classList.remove('filled','current','wrong');b.classList.add('correct');}
+    }
+    spawnConfetti(16);
+    speak('Yes!');
+    wuCorrect++;
+    wuIdx++;
+    setTimeout(()=>{
+      if(wuIdx>=wuQueue.length){
+        // All done!
+        const name=getName();
+        document.getElementById('wu-done-title').textContent=`${name}, warm-up complete! 🌟`;
+        document.getElementById('wu-done-sub').textContent=`You spelled all ${WARMUP_WORDS.length} tricky words from memory!`;
+        document.getElementById('wu-flash').style.display='none';
+        document.getElementById('wu-spell').style.display='none';
+        document.getElementById('wu-done').style.display='flex';
+        spawnConfetti(50);
+        speak('Amazing job!');
+      } else {
+        showWarmupFlash(false);
+      }
+    },900);
+  } else {
+    // Wrong
+    wuAttempts++;
+    for(let i=0;i<curWord.length;i++){
+      const b=document.getElementById(`wu-lbox-${i}`);
+      if(b) b.classList.add('wrong');
+    }
+    speak('Try again!');
+    if(wuAttempts>=3){
+      // Show the word again before retrying
+      document.getElementById('wu-attempts-left').textContent='';
+      setTimeout(()=>showWarmupFlash(true),700);
+      return;
+    }
+    setTimeout(()=>{
+      const left=3-wuAttempts;
+      document.getElementById('wu-attempts-left').textContent=`${left} tr${left===1?'y':'ies'} left!`;
+      // Reset boxes
+      wuBoxIdx=0;
+      for(let i=0;i<curWord.length;i++){
+        const b=document.getElementById(`wu-lbox-${i}`);
+        if(b){b.className='lbox'+(i===0?' current':'');b.textContent='';}
+      }
+      const inp=document.getElementById('wu-spell-input');
+      inp.value=''; inp.focus(); speakCurrent();
+    },700);
+  }
+}
+
+// Keyboard handler for warm-up spell input
+document.getElementById('wu-spell-input').addEventListener('keydown',e=>{
+  if(document.getElementById('wu-spell').style.display==='none') return;
+  if(e.key==='Backspace'){
+    e.preventDefault();
+    if(wuBoxIdx>0){
+      wuBoxIdx--;
+      const box=document.getElementById(`wu-lbox-${wuBoxIdx}`);
+      box.textContent=''; box.className='lbox current';
+      if(wuBoxIdx+1<curWord.length) document.getElementById(`wu-lbox-${wuBoxIdx+1}`).className='lbox';
+    }
+    return;
+  }
+  if(e.key.length!==1||e.ctrlKey||e.metaKey) return;
+  e.preventDefault();
+  if(wuBoxIdx>=curWord.length) return;
+  const box=document.getElementById(`wu-lbox-${wuBoxIdx}`);
+  if(!box) return;
+  box.textContent=e.key.toLowerCase();
+  box.classList.remove('current'); box.classList.add('filled');
+  wuBoxIdx++;
+  if(wuBoxIdx<curWord.length){
+    document.getElementById(`wu-lbox-${wuBoxIdx}`).classList.add('current');
+  } else {
+    setTimeout(wuCheckSpell,200);
+  }
+});
+
+document.getElementById('wu-spell-input').addEventListener('blur',()=>{
+  if(document.getElementById('wu-spell').style.display!=='none')
+    setTimeout(()=>document.getElementById('wu-spell-input').focus(),100);
+});
+
 function init() {
   if(!getName()) {
     showScreen('screen-setup');
     setTimeout(()=>document.getElementById('name-input').focus(),200);
   } else {
-    showHome();
+    // Always start with the warm-up before the main lesson
+    initWarmupIntro();
   }
 }
 
@@ -1022,13 +1332,13 @@ function beginWord(word) {
 }
 
 const PHASE_NAMES=['Meet the Word','Sound It Out','Build It!','Story Time','Spell It!',''];
-const PHASE_LABELS=['PHASE 1 OF 8','PHASE 2 OF 8','PHASE 3 OF 8','PHASE 7 OF 8','PHASE 8 OF 8',''];
-const DOT_POS=[0,1,2,6,7,-1];
+const PHASE_LABELS=['PHASE 1 OF 9','PHASE 2 OF 9','PHASE 3 OF 9','PHASE 8 OF 9','PHASE 9 OF 9',''];
+const DOT_POS=[0,1,2,7,8,-1];
 
 function renderPhase(ph) {
   curPhase=ph;
   // Hide all phases
-  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-spot','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
   // Update header
@@ -1036,7 +1346,7 @@ function renderPhase(ph) {
   document.getElementById('phase-title').textContent=PHASE_NAMES[ph]||'';
   // Dots
   const dp=DOT_POS[ph];
-  if(dp>=0) renderPhaseDots(dp,8);
+  if(dp>=0) renderPhaseDots(dp,9);
 
   const wd=WORDS[curWord]||{emoji:'✨',hint:'You can do it!',sounds:[...curWord],story:`The word {${curWord}} is in this sentence. Say {${curWord}}! Great job saying {${curWord}}!`};
 
@@ -1220,6 +1530,8 @@ function renderSpell(wd) {
   document.getElementById('spell-emoji').textContent=wd.emoji;
   spellAttempts=0;
   spellBoxIdx=0;
+  spellRound=0;
+  document.getElementById('spell-round-badge').textContent='Round 1 of 3 — spell from memory!';
   document.getElementById('attempts-left').textContent='3 tries!';
   document.getElementById('spell-reveal').textContent='';
   renderLetterBoxes('spell-boxes',curWord,'spell');
@@ -1273,9 +1585,24 @@ function checkSpell() {
       if(b){b.classList.remove('filled','current');b.classList.add('correct');}
     }
     spawnConfetti(20);
-    speak('Amazing!');
-    if(!reviewMode){setTimeout(()=>showPresent(),1000);}
-    else{setTimeout(()=>goPhase(5),1200);}
+    spellRound++;
+    if(!reviewMode && spellRound<3){
+      const roundMsg=['','Nice! Spell it again! 💪','Last one — you\'ve got this! 🔥'];
+      speak(roundMsg[spellRound]);
+      document.getElementById('spell-round-badge').textContent=`Round ${spellRound+1} of 3${spellRound===2?' — final round!':''}`;
+      setTimeout(()=>{
+        spellAttempts=0; spellBoxIdx=0;
+        document.getElementById('attempts-left').textContent='3 tries!';
+        document.getElementById('spell-reveal').textContent='';
+        renderLetterBoxes('spell-boxes',curWord,'spell');
+        const inp=document.getElementById('spell-input');
+        inp.value=''; inp.focus(); speakCurrent();
+      },900);
+    } else {
+      speak('Amazing!');
+      if(!reviewMode){setTimeout(()=>showPresent(),1000);}
+      else{setTimeout(()=>goPhase(5),1200);}
+    }
   } else {
     // WRONG
     spellAttempts++;
@@ -1601,12 +1928,12 @@ let scrambleNextIdx=0;
 
 function showScramble(){
   if(curWord.length<=1){showMissingLetter();return;}
-  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-spot','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
-  document.getElementById('phase-label').textContent='PHASE 5 OF 8';
+  document.getElementById('phase-label').textContent='PHASE 5 OF 9';
   document.getElementById('phase-title').textContent='Scramble It!';
-  renderPhaseDots(4,8);
+  renderPhaseDots(4,9);
   document.getElementById('phase-scramble').style.display='block';
   renderScramble();
 }
@@ -1660,12 +1987,12 @@ function tapScrambleTile(tile,letter){
 
 // ── MISSING LETTER ────────────────────────────────────
 function showMissingLetter(){
-  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-spot','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
-  document.getElementById('phase-label').textContent='PHASE 6 OF 8';
+  document.getElementById('phase-label').textContent='PHASE 6 OF 9';
   document.getElementById('phase-title').textContent='Missing Letter!';
-  renderPhaseDots(5,8);
+  renderPhaseDots(5,9);
   document.getElementById('phase-missing').style.display='block';
   renderMissingLetter();
 }
@@ -1710,7 +2037,7 @@ function tapMissingChoice(btn,letter,correct){
     if(blank){blank.textContent=letter;blank.style.color='var(--green)';blank.style.borderColor='var(--green)';}
     document.querySelectorAll('.ml-btn').forEach(b=>b.disabled=true);
     spawnConfetti(12); speak('Yes!');
-    setTimeout(()=>goPhase(3),900);
+    setTimeout(()=>showSpotTheSpelling(),900);
   } else {
     btn.classList.add('ml-wrong');
     btn.disabled=true;
@@ -1719,16 +2046,66 @@ function tapMissingChoice(btn,letter,correct){
   }
 }
 
+// ── SPOT THE SPELLING ─────────────────────────────────
+function showSpotTheSpelling(){
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-spot','phase-story','phase-spell','phase-done'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('phase-label').textContent='PHASE 7 OF 9';
+  document.getElementById('phase-title').textContent='Spot the Spelling!';
+  renderPhaseDots(6,9);
+  document.getElementById('phase-spot').style.display='block';
+  renderSpotTheSpelling();
+}
+
+function renderSpotTheSpelling(){
+  const wd=WORDS[curWord]||{emoji:'✨',hint:'Which one looks right?'};
+  document.getElementById('spot-emoji').textContent=wd.emoji;
+  document.getElementById('spot-hint').textContent=wd.hint;
+  const wrongs=getWrongSpellings(curWord);
+  const options=[curWord,...wrongs].sort(()=>Math.random()-.5);
+  const choices=document.getElementById('spot-choices');
+  choices.innerHTML='';
+  const cols=['#FFD93D','#4ECDC4','#FF6B6B','#7C4DFF'];
+  options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.style.cssText=`background:${cols[i%cols.length]};border:none;border-radius:16px;font-size:22px;font-weight:900;font-family:'Nunito',sans-serif;padding:16px 24px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:transform .1s;color:var(--navy);`;
+    btn.textContent=opt;
+    btn.onmouseenter=()=>btn.style.transform='scale(1.06)';
+    btn.onmouseleave=()=>btn.style.transform='scale(1)';
+    btn.onclick=()=>tapSpotChoice(btn,opt);
+    choices.appendChild(btn);
+  });
+  setTimeout(()=>speakCurrent(),200);
+}
+
+function tapSpotChoice(btn,choice){
+  if(choice.toLowerCase()===curWord.toLowerCase()){
+    btn.style.background='var(--green)';
+    document.querySelectorAll('#spot-choices button').forEach(b=>b.disabled=true);
+    spawnConfetti(14); speak("That's the one!");
+    setTimeout(()=>goPhase(3),900);
+  } else {
+    btn.style.opacity='.4';
+    btn.disabled=true;
+    btn.style.transform='';
+    const orig=btn.style.background;
+    btn.style.background='var(--coral)';
+    speak('Try again!');
+    setTimeout(()=>{btn.style.background=orig;btn.style.opacity='.4';},400);
+  }
+}
+
 // ── TRACE IT ──────────────────────────────────────────
 let tracingActive=false,traceLastX=0,traceLastY=0,traceAbort=null;
 
 function showTrace(){
-  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-story','phase-spell','phase-done'].forEach(id=>{
+  ['phase-intro','phase-sounds','phase-build','phase-trace','phase-scramble','phase-missing','phase-spot','phase-story','phase-spell','phase-done'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
-  document.getElementById('phase-label').textContent='PHASE 4 OF 8';
+  document.getElementById('phase-label').textContent='PHASE 4 OF 9';
   document.getElementById('phase-title').textContent='Trace It!';
-  renderPhaseDots(3,8);
+  renderPhaseDots(3,9);
   tracingActive=false;
   document.getElementById('phase-trace').style.display='block';
   setTimeout(()=>setupTraceCanvas(),60);
@@ -1751,9 +2128,8 @@ function setupTraceCanvas(){
   const sig={signal:traceAbort.signal};
   const sigPassive={signal:traceAbort.signal,passive:false};
 
-  // Mouse / stylus via pointer events
+  // Unified pointer events — handles mouse, touch, and stylus
   canvas.addEventListener('pointerdown',e=>{
-    if(e.pointerType==='touch') return;
     e.preventDefault();
     const r=canvas.getBoundingClientRect();
     traceLastX=e.clientX-r.left; traceLastY=e.clientY-r.top;
@@ -1761,33 +2137,13 @@ function setupTraceCanvas(){
     canvas.setPointerCapture(e.pointerId);
   },sig);
   canvas.addEventListener('pointermove',e=>{
-    if(e.pointerType==='touch') return;
     if(!tracingActive)return;
     const r=canvas.getBoundingClientRect();
     const x=e.clientX-r.left,y=e.clientY-r.top;
     traceStroke(x,y); traceLastX=x; traceLastY=y;
   },sig);
-  canvas.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')tracingActive=false;},sig);
-  canvas.addEventListener('pointercancel',e=>{if(e.pointerType!=='touch')tracingActive=false;},sig);
-
-  // Finger / touch (iPad, touchscreen, phone)
-  canvas.addEventListener('touchstart',e=>{
-    e.preventDefault();
-    const t=e.touches[0];
-    const r=canvas.getBoundingClientRect();
-    traceLastX=t.clientX-r.left; traceLastY=t.clientY-r.top;
-    tracingActive=true;
-  },sigPassive);
-  canvas.addEventListener('touchmove',e=>{
-    e.preventDefault();
-    if(!tracingActive)return;
-    const t=e.touches[0];
-    const r=canvas.getBoundingClientRect();
-    const x=t.clientX-r.left,y=t.clientY-r.top;
-    traceStroke(x,y); traceLastX=x; traceLastY=y;
-  },sigPassive);
-  canvas.addEventListener('touchend',()=>{tracingActive=false;},sig);
-  canvas.addEventListener('touchcancel',()=>{tracingActive=false;},sig);
+  canvas.addEventListener('pointerup',()=>{tracingActive=false;},sig);
+  canvas.addEventListener('pointercancel',()=>{tracingActive=false;},sig);
 }
 
 function drawTraceGuide(ctx,w,h){
